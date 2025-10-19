@@ -1,10 +1,17 @@
-from utility import relu_act, sigmoid_act, softmax_act
-from utility import bce_loss, cce_loss
+from utility import relu_act, sigmoid_act, softmax_act  # activation
+from utility import bce_loss, cce_loss                  # loss
 import numpy as np
 import pickle
 
 
 class NeuralNet:
+    """
+    Neural Network for general usage
+
+        Input + Output size are numbers = #
+        Hidden layer sizes are lists = [#, #, #]
+        Activation and loss decided by user (general model)
+    """
     def __init__(self,
                  input_size, hidden_size, output_size,
                  hidden_activation, output_activation, loss_function,
@@ -43,22 +50,26 @@ class NeuralNet:
         return (x - self.x_min) / (self.x_max - self.x_min + eps)
 
     def forward(self, X):
-        """Forward pass input --> output"""
-        activations = [X]        # store A
-        pre_activations = []     # store Z
+        """
+        Forward pass
+        Input --> Output
+        X -> (Z|A) -> ... -> (Z|A) -> Prediction
+        """
+        pre_activations = []     # store Z (pre-activation)
+        activations = [X]        # store A (activations)
 
         # for each layer (hidden + output)
         for i in range(len(self.weights)):
 
             # Z = XW + b
-            Z = activations[-1] @ self.weights[i] + self.biases[i]
-            # [-1] gets previous layers
+            Z = activations[-1] @ self.weights[i] + self.biases[i]  # [-1] gets previous layers X/A
             pre_activations.append(Z)
 
-            if i == len(self.weights) - 1: # output layer
-                A = self.output_activation.func(Z)
+            # discern between output layer and hidden layer activation
+            if i == len(self.weights) - 1:
+                A = self.output_activation.func(Z)      # output
             else:
-                A = self.hidden_activation.func(Z)
+                A = self.hidden_activation.func(Z)      # hidden
 
             # add A to list
             activations.append(A)
@@ -67,10 +78,19 @@ class NeuralNet:
 
 
     def backward(self, y_true, pre_acts, acts):
+        """
+        Backward propagation
+        Input <-- Output
+        Z/W = L/A * A/Z * Z/W   (chain of functions)
+        L/Z = (L/A * A/Z)
+        """
         N = y_true.shape[0]  # number of samples
         dA = self.loss_function.derivative(y_true, acts[-1])  # L/A   (start at output A)
 
+        # Go backwards, from output layer --> input
         for i in reversed(range(len(self.weights))):
+
+            # discern between output layer and hidden layer activation (derivation)
             if i == len(self.weights) - 1:
                 dZ = dA * self.output_activation.derivative(pre_acts[i])  # L/Z - output
             else:
@@ -113,7 +133,7 @@ class NeuralNet:
         return activations[-1]  # return output layer activations
 
     def save(self, filename="model.pt"):
-        """Saves model parameters and config to file"""
+        """Saving done by saving dictionary with config to file"""
         model_data = {
             "lr": self.lr,
             "weights": self.weights,
@@ -127,11 +147,11 @@ class NeuralNet:
         with open(filename, "wb") as f:
             pickle.dump(model_data, f)
 
-        print(f"✅ Model saved to {filename}")
+        print(f"Model saved to {filename}")
 
     @staticmethod
     def load(filename="model.pt"):
-        """Loads model parameters and config from file"""
+        """Loads model parameters and config from file, "restoring" and returning it"""
         with open(filename, "rb") as f:
             model_data = pickle.load(f)
 
@@ -144,7 +164,7 @@ class NeuralNet:
         hidden_sizes = [w.shape[1] for w in model_data["weights"][:-1]]
         output_size = model_data["weights"][-1].shape[1]
 
-        # new, loaded NN
+        # new, loaded NN (restoration)
         nn = NeuralNet(
             input_size=input_size,
             hidden_size=hidden_sizes,
@@ -161,5 +181,41 @@ class NeuralNet:
         nn.x_min = model_data["x_min"]
         nn.x_max = model_data["x_max"]
 
-        print(f"✅ Model loaded from {filename}")
+        print(f"Model loaded from {filename}")
         return nn
+
+    def evaluate(self, X, y_label):
+        y_pred = self.predict(X)
+        y_pred = (y_pred >= 0.5).astype(int)        # for rounding up (>50% is pass)
+
+        print("True")
+        print(y_label[:5])
+        print("Pred")
+        print(y_pred[:5])
+
+        # Confusion matrix parts
+        TP = np.sum((y_label == 1) & (y_pred == 1))     # True positive
+        TN = np.sum((y_label == 0) & (y_pred == 0))     # True negative
+        FP = np.sum((y_label == 0) & (y_pred == 1))     # False positive
+        FN = np.sum((y_label == 1) & (y_pred == 0))     # False negative
+
+        # accuracy results
+        accuracy = (TP + TN) / (TP + TN + FP + FN)
+        precision = TP / (TP + FP)
+        recall = TP / (TP + FN)
+        f1 = 2 * (precision * recall) / (precision + recall)
+
+        result = (
+                "\n" + "*" * 20 + "\n"
+                  f"{'F1:':<12}{f1:.4f}\n"
+                  f"{'Accuracy:':<12}{accuracy:.4f}\n"
+                  f"{'Precision:':<12}{precision:.4f}\n"
+                  f"{'Recall:':<12}{recall:.4f}\n"
+                + "*" * 20 + "\n"
+        )
+
+        print("\n" + "=" * 40)
+        print("Model Evaluation Results".center(40))
+        print("=" * 40)
+        print(result)
+

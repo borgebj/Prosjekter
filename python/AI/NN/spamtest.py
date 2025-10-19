@@ -1,7 +1,8 @@
-from neural_network import NeuralNet
-from utility import relu_act, sigmoid_act, bce_loss
 from utility import get_predictions, print_prediction
+from utility import relu_act, sigmoid_act, bce_loss
+from neural_network import NeuralNet
 import numpy as np
+
 
 """
 3-2-1 NN for spam detection using features "free", "win", "offer":
@@ -67,7 +68,7 @@ y = np.array([
     [0],  # not spam
 ])
 
-X_extra, y_extra = generate_samples(20)    # 20 synthetic samples
+X_extra, y_extra = generate_samples(100)    # 20 synthetic samples
 X = np.vstack([X, X_extra])
 y = np.vstack([y, y_extra])
 
@@ -109,14 +110,16 @@ nn.save("spam_detector.pt")
 
 
 # ------------------ Print Results ------------------
-probs_train, classes_train = get_predictions(nn, X_train)
-print(f"\n\nTrain data ({train_split})")
-print_prediction(X_train, y_train, probs_train, classes_train)
+pred_train, classes_train = get_predictions(nn, X_train)
+print(f"\n\nTrain data (seen) ({train_split})")
+print_prediction(X_train, y_train, pred_train, classes_train)
 
-probs_dev, classes_dev = get_predictions(nn, X_dev)
-print(f"\nDev data ({dev_split})")
-print_prediction(X_dev, y_dev, probs_dev, classes_dev)
+pred_dev, classes_dev = get_predictions(nn, X_dev)
+print(f"\nDev data (unseen) ({dev_split})")
+print_prediction(X_dev, y_dev, pred_dev, classes_dev)
 
-probs_test, classes_test = get_predictions(nn, X_test)
-print(f"\nTest data ({test_split})")
-print_prediction(X_test, y_test, probs_test, classes_test)
+pred_test, classes_test = get_predictions(nn, X_test)
+print(f"\nTest data (unseen) ({test_split})")
+print_prediction(X_test, y_test, pred_test, classes_test)
+
+nn.evaluate(X_test, y_test)
