@@ -185,13 +185,10 @@ class NeuralNet:
         return nn
 
     def evaluate(self, X, y_label):
-        y_pred = self.predict(X)
+        """Prints out evaluation results from given labels and produced predictions
+        In form of F1, Precision, Recall, and Accuracy"""
+        y_pred = self.predict(X)                    # get predictions
         y_pred = (y_pred >= 0.5).astype(int)        # for rounding up (>50% is pass)
-
-        print("True")
-        print(y_label[:5])
-        print("Pred")
-        print(y_pred[:5])
 
         # Confusion matrix parts
         TP = np.sum((y_label == 1) & (y_pred == 1))     # True positive
@@ -200,10 +197,10 @@ class NeuralNet:
         FN = np.sum((y_label == 1) & (y_pred == 0))     # False negative
 
         # accuracy results
-        accuracy = (TP + TN) / (TP + TN + FP + FN)
-        precision = TP / (TP + FP)
-        recall = TP / (TP + FN)
-        f1 = 2 * (precision * recall) / (precision + recall)
+        accuracy = (TP + TN) / (TP + TN + FP + FN)      # Overall correct predictions
+        precision = TP / (TP + FP)                      # How few 'errors' / false positives
+        recall = TP / (TP + FN)                         # How well model finds actual positives
+        f1 = 2 * (precision * recall) / (precision + recall)    # balance between precision and recall
 
         result = (
                 "\n" + "*" * 20 + "\n"
