@@ -77,15 +77,34 @@ def softmax_derivative(x):
 
 # ========== Loss function ==================
 # ------------------------------------------------------
+def mse(y_true, y_pred):
+    """Calculates loss with MSE"""
+    return np.mean((y_true - y_pred) ** 2, axis=0)
+
+
+def derivative_mse(y_true, y_pred):
+    """Calculates derivative of MSE"""
+    N = y_true.shape[0]
+    return 2 * (y_pred - y_true) / N
+
+# ------------------------------------------------------
+
+
 def binary_cross_entropy(y_true, y_pred):
     """Calculates loss with binary cross entropy"""
-    bce = -np.mean(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
-    return bce
+    # (1/N) * (y * log(p) + (1-y) * log(1-p))
+    eps = 1e-15
+    y_pred = np.clip(y_pred, eps, 1-eps)
+    return -np.mean(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
 
 
 def derivative_bce(y_true, y_pred):
-    """Calculates derivative of binary cross entropy loss"""
-    return (y_pred - y_true) / (y_pred * (1 - y_pred))
+    """Calculates derivative of binary cross entropy"""
+    # (1/N) * (p - y) / p * (1- p)
+    eps = 1e-15
+    y_pred = np.clip(y_pred, eps, 1-eps)
+    N = y_true.shape[0]
+    return (1/N) * (y_pred - y_true) / (y_pred * (1 - y_pred))
 
 
 # ------------------------------------------------------
@@ -93,12 +112,17 @@ def derivative_bce(y_true, y_pred):
 
 def categorical_cross_entropy(y_true, y_pred):
     """Calculates loss with categorical cross entropy"""
-    cce = -np.mean(np.sum(y_true * np.log(y_pred), axis=1))
-    return cce
+    # (1/N) * sum(y * log(p))       (sums over classes)
+    eps = 1e-15
+    y_pred = np.clip(y_pred, eps, 1-eps)
+    return -np.mean(np.sum(y_true * np.log(y_pred), axis=1))
 
 
 def derivative_cce(y_true, y_pred):
-    """Calculates derivative of categorical cross entropy loss"""
+    """Calculates derivative of categorical cross entropy"""
+    # (1/N) * (y - p)
+    eps = 1e-15
+    y_pred = np.clip(y_pred, eps, 1-eps)
     N = y_true.shape[0]
     return - (y_true / y_pred) / N
 
