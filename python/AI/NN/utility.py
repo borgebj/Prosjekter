@@ -62,8 +62,10 @@ def sigmoid_derivative(x):
 
 def softmax(x):
     """Softmax activation function for multi-class output"""
-    exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))  # for numerical stability
-    return exp_x / np.sum(exp_x, axis=1, keepdims=True)
+    # axis=1 ensures function applied across each row
+    # keepdims ensures original dimensions maintained
+    exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))
+    return exp_x / exp_x.sum(axis=1, keepdims=True)
 
 
 def softmax_derivative(x):
@@ -78,8 +80,13 @@ def softmax_derivative(x):
 # ========== Loss function ==================
 # ------------------------------------------------------
 def mse(y_true, y_pred):
-    """Calculates loss with MSE"""
-    return np.mean((y_true - y_pred) ** 2, axis=0)
+    """MSE loss to present losses across epochs
+    Step 1-2 includes loss for single sample"""
+    # 1. calculates error (y - p)
+    # 2. squares errors ^2
+    # 3. sums errors        (numpy internal)
+    # 4. averages           (numpy internal)
+    return np.mean((y_true - y_pred) ** 2)
 
 
 def derivative_mse(y_true, y_pred):
@@ -93,16 +100,14 @@ def derivative_mse(y_true, y_pred):
 def binary_cross_entropy(y_true, y_pred):
     """Calculates loss with binary cross entropy"""
     # (1/N) * (y * log(p) + (1-y) * log(1-p))
-    eps = 1e-15
-    y_pred = np.clip(y_pred, eps, 1-eps)
+    y_pred += 1e-15
     return -np.mean(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
 
 
 def derivative_bce(y_true, y_pred):
     """Calculates derivative of binary cross entropy"""
     # (1/N) * (p - y) / p * (1- p)
-    eps = 1e-15
-    y_pred = np.clip(y_pred, eps, 1-eps)
+    y_pred += 1e-15
     N = y_true.shape[0]
     return (1/N) * (y_pred - y_true) / (y_pred * (1 - y_pred))
 
@@ -114,15 +119,13 @@ def categorical_cross_entropy(y_true, y_pred):
     """Calculates loss with categorical cross entropy"""
     # (1/N) * sum(y * log(p))       (sums over classes)
     eps = 1e-15
-    y_pred = np.clip(y_pred, eps, 1-eps)
-    return -np.mean(np.sum(y_true * np.log(y_pred), axis=1))
+    return -np.mean(np.sum(y_true * np.log(y_pred + eps), axis=1))
 
 
 def derivative_cce(y_true, y_pred):
     """Calculates derivative of categorical cross entropy"""
     # (1/N) * (y - p)
-    eps = 1e-15
-    y_pred = np.clip(y_pred, eps, 1-eps)
+    y_pred += 1e-15
     N = y_true.shape[0]
     return - (y_true / y_pred) / N
 
@@ -132,11 +135,18 @@ def derivative_cce(y_true, y_pred):
 
 # ========== Data Normalization ==================
 # ------------------------------------------------------
-def normalize(x, x_min, x_max):
-    """Min-Max Normalization (0-1) with numpy array x
-    Also embedded in NeuralNet class
-    """
-    return (x - x_min) / (x_max - x_min)
+def minmax(x, x_min, x_max):
+    """Min-Max Normalization (0-1) with numpy array x"""
+    eps = 1e-8  # small val to avoid division by zero
+    return (x - x_min) / (x_max - x_min + eps)
+
+
+def standard(X, x_min, x_max):
+    """Standard scaler aka Z-score"""
+    # do axis=0 > column, due to per-feature
+    mean = X.mean(axis=0)
+    std = X.std(axis=0)
+    return (X - mean) / std
 
 
 # ========== Label Preparation ==================

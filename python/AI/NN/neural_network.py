@@ -1,5 +1,6 @@
 from utility import relu_act, sigmoid_act, softmax_act  # activation
 from utility import bce_loss, cce_loss                  # loss
+from utility import minmax, standard                    # scaling
 import numpy as np
 import pickle
 
@@ -15,9 +16,11 @@ class NeuralNet:
     def __init__(self,
                  input_size, hidden_size, output_size,
                  hidden_activation, output_activation, loss_function,
+                 normalizer=minmax,
                  lr=0.01):
 
         self.lr = lr                                # learning rate
+        self.normalize = normalizer                 # normalization function (minmax default)
         self.hidden_activation = hidden_activation  # hidden layer activation function
         self.output_activation = output_activation  # output layer activation function
         self.loss_function = loss_function          # loss function
@@ -43,11 +46,6 @@ class NeuralNet:
 
             self.weights.append(np.random.randn(layer_size[i], layer_size[i + 1]) * scale)
             self.biases.append(np.zeros(layer_size[i + 1]))
-
-    def normalize(self, x):
-        """Min-Max Normalization (0-1) with numpy array x"""
-        eps = 1e-8  # small val to avoid division by zero
-        return (x - self.x_min) / (self.x_max - self.x_min + eps)
 
     def forward(self, X):
         """
@@ -115,7 +113,7 @@ class NeuralNet:
         self.x_max = X.max(axis=0)
 
         # normalize input
-        X_norm = self.normalize(X)
+        X_norm = self.normalize(X, self.x_min, self.x_max)
 
         # training epochs
         for epoch in range(epochs):
@@ -128,8 +126,10 @@ class NeuralNet:
 
 
     def predict(self, X):
-        X_norm = self.normalize(X)
+        # prediction only does one forward pass
+        X_norm = self.normalize(X, self.x_min, self.x_max)
         _, activations = self.forward(X_norm)
+
         return activations[-1]  # return output layer activations
 
     def save(self, filename="model.pt"):
@@ -140,6 +140,7 @@ class NeuralNet:
             "biases": self.biases,
             "x_min": self.x_min,
             "x_max": self.x_max,
+            "normalizer": self.normalize.__name__,
             "hidden_activation": self.hidden_activation.func.__name__,
             "output_activation": self.output_activation.func.__name__,
             "loss_function": self.loss_function.func.__name__,
@@ -156,6 +157,7 @@ class NeuralNet:
             model_data = pickle.load(f)
 
         # map names back to function-objects
+        norm_map = {"minmax": minmax, "standard": standard}
         act_map = {"relu": relu_act, "sigmoid": sigmoid_act, "softmax": softmax_act}
         loss_map = {"binary_cross_entropy": bce_loss, "categorical_cross_entropy": cce_loss}
 
@@ -169,6 +171,7 @@ class NeuralNet:
             input_size=input_size,
             hidden_size=hidden_sizes,
             output_size=output_size,
+            normalizer=norm_map[model_data["normalizer"]],
             hidden_activation=act_map[model_data["hidden_activation"]],
             output_activation=act_map[model_data["output_activation"]],
             loss_function=loss_map[model_data["loss_function"]],
