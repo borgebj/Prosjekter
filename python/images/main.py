@@ -8,25 +8,25 @@ from . import utility
 
 
 def main():
-    filename = "test/rain.jpg"
-    filter_name = "blur"
+    file = "mexico"
+    filename = f"test/{file}.jpg"
+    filter_name = "greyscale"
+    implementation = "numpy"
 
     img = io.read_image(filename)
 
-    img = io.random_image(5, 5)
+    # img = io.random_image(1920, 1200)
 
     # scaling
-    img = utility.rescale(img, 3)
-
-    # io.display(img)
+    img = utility.rescale(img, scale=3)
 
     # load filter, run it
-    filter_fn = images.get_filter(filter_name)
-    img_filtered = filter_fn(img)
+    filter_fn = images.get_filter(filter_name, implementation)
+    img = filter_fn(img)
 
-    io.display(img_filtered)
+    io.display(img)
 
-    # print(img)
+    print(img)
 
 
 
