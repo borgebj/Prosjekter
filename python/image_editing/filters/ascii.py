@@ -21,7 +21,7 @@ def python_ascii(image: np.ndarray, scale=2) -> np.ndarray:
 
     # output image
     ascii_image = Image.new(
-        "L",
+        "RGB",
         (new_width * char_width, new_height * char_height),
         "black"
     )
@@ -118,5 +118,8 @@ def numpy_ascii(image: np.ndarray, scale=2) -> np.ndarray:
         new_height * char_height,
         new_width * char_width
     )
+
+    # converts grayscale image to rgb (3 channels)
+    output = np.stack([output] * 3, axis=-1)
 
     return output

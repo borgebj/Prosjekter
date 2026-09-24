@@ -16,8 +16,8 @@ def get_filter(filter: str = "blur", implementation: str = "python"):
         filter_function (function)
     """
 
-    # Get the module, e.g. greyscale.py
-    module = importlib.import_module(filter)
+    # Get the module, e.g. filters.greyscale
+    module = importlib.import_module(f"filters.{filter}")
 
     # Construct filter function name, e.g. numpy_greyscale
     filter_name = f"{implementation}_{filter}"

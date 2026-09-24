@@ -1,6 +1,6 @@
 import images
 import image_io
-from python.image_editing import utility
+from python.image_editing.filters import utility
 
 
 def main():
