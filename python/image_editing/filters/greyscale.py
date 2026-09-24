@@ -10,9 +10,9 @@ def python_greyscale(image: np.ndarray) -> np.ndarray:
     # apply greyscale to each color pixel
     for i in range(height):
         for j in range(width):
-            red = image[i, j, 0] * 0.21
-            green = image[i, j, 1] * 0.72
-            blue = image[i, j, 2] * 0.07
+            red = image[i, j, 0]    * 0.21
+            green = image[i, j, 1]  * 0.72
+            blue = image[i, j, 2]   * 0.07
             pixel = (red + green + blue)
 
             for k in range(depth):

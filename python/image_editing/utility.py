@@ -1,5 +1,6 @@
 from PIL import Image
 import numpy as np
+import time
 
 
 def rescale(img: np.array or Image.Image, scale: int = 10) -> Image.Image:
@@ -11,3 +12,12 @@ def rescale(img: np.array or Image.Image, scale: int = 10) -> Image.Image:
 
     return np.array(resized)
 
+
+def time_function(function, *args, **kwargs):
+    start = time.perf_counter()
+
+    result = function(*args, **kwargs)
+
+    elapsed = time.perf_counter() - start
+
+    return result, elapsed
