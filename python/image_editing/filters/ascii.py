@@ -1,5 +1,6 @@
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 import numpy as np
+from utility import get_font
 
 
 def python_ascii(image: np.ndarray, scale=2) -> np.ndarray:
@@ -27,7 +28,7 @@ def python_ascii(image: np.ndarray, scale=2) -> np.ndarray:
     )
 
     draw = ImageDraw.Draw(ascii_image)
-    font = ImageFont.truetype("/usr/share/fonts/dejavu/DejaVuSansMono.ttf", char_height)
+    font = get_font(char_height)
 
     # goes through each (new) pixel / ascii position
     for y in range(new_height):
@@ -84,10 +85,7 @@ def numpy_ascii(image: np.ndarray, scale=2) -> np.ndarray:
     indices = (greyscale / 256 * len(characters)).astype(int)
 
     # render each character once
-    font = ImageFont.truetype(
-        "/usr/share/fonts/dejavu/DejaVuSansMono.ttf",
-        char_height
-    )
+    font = get_font(char_height)
 
     glyphs = []
     for character in characters:

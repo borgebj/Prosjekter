@@ -1,8 +1,9 @@
-from PIL import Image
+from PIL import Image, ImageFont
 import numpy as np
 import time
 import random
 import os
+from pathlib import Path
 
 
 def rescale(img: np.array or Image.Image, scale: int = 10) -> Image.Image:
@@ -39,3 +40,20 @@ def random_image(directory="../images"):
         raise FileNotFoundError(f'No images found in {directory}')
 
     return random.choice(files)
+
+
+def get_font(size: int):
+    """Gets compatible font for ASCII rendering"""
+    candidates = [
+        "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+        "/usr/share/fonts/dejavu/DejaVuSansMono.ttf",
+        "C:/Windows/Fonts/consola.ttf",
+        "C:/Windows/Fonts/cour.ttf",
+        "C:/Windows/Fonts/CascadiaMono.ttf",
+    ]
+
+    for font_path in candidates:
+        if Path(font_path).exists():
+            return ImageFont.truetype(font_path, size)
+
+    return ImageFont.load_default()
