@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="no">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Neural Network Project</title>
+  <title>Prosjekt om nevralt nettverk</title>
   <style>
     body {
       margin: 0;
@@ -65,63 +65,63 @@
 <body>
   <div class="container">
     <div class="topbar">
-      <h1>Neural network</h1>
-      <a href="index.html">Back to main page</a>
+      <h1>Nevralt nettverk</h1>
+      <a href="index.html">Tilbake til hovedside</a>
     </div>
 
     <div class="card">
-      <p>This project is a small neural network built from scratch for classification tasks. The idea is to understand the fundamentals of forward passes, weights, activations, loss functions, and training logic without relying on a framework.</p>
-      <p>It is a good example of experimenting with machine learning concepts in a very direct and transparent way.</p>
+      <p>Dette prosjektet er et lite nevralt nettverk bygget fra bunnen for klassifiseringsoppgaver. Tanken er å forstå grunnleggende konsepter som forward pass, vekter, aktiveringer, tapfunksjoner og treningslogikk uten å stole på et rammeverk.</p>
+      <p>Det er et godt eksempel på å eksperimentere med maskinlæringskonsepter på en veldig direkte og transparent måte.</p>
     </div>
 
     <div class="card">
-      <h2>Model overview</h2>
-      <p>This toy project uses a simple neural network structure: three input features, a hidden layer, and one output node that predicts whether the input looks like spam.</p>
-      <img src="python/AI/NN/generated/model_architecture.png" alt="Toy neural network architecture diagram" style="width:100%; border-radius: 12px; border:1px solid #334155; margin-top: 12px;" />
+      <h2>Modelloversikt</h2>
+      <p>Dette mini-prosjektet bruker en enkel struktur for et nevralt nettverk: tre input-funksjoner, et skjult lag og én outputnode som forutsier om input ser ut som søppelpost.</p>
+      <img src="python/AI/NN/generated/model_architecture.png" alt="Diagram over enkel nevralt nettverksarkitektur" style="width:100%; border-radius: 12px; border:1px solid #334155; margin-top: 12px;" />
     </div>
 
     <div class="card">
-      <h2>What it shows</h2>
+      <h2>Hva det viser</h2>
       <ul>
-        <li>Custom neural network implementation</li>
-        <li>Activation functions and loss functions</li>
-        <li>Training loop and prediction flow</li>
-        <li>Model saving and loading logic</li>
+        <li>Egendefinert implementasjon av nevralt nettverk</li>
+        <li>Aktiveringsfunksjoner og tapfunksjoner</li>
+        <li>Treningsløkke og prediksjonsflyt</li>
+        <li>Logikk for lagring og lasting av modell</li>
       </ul>
     </div>
 
     <div class="card">
-      <h2>How the data is represented</h2>
-      <p>The model works on a tiny synthetic dataset built around three simple features:</p>
+      <h2>Hvordan data representeres</h2>
+      <p>Modellen bruker et lite syntetisk datasett bygget rundt tre enkle funksjoner:</p>
       <ul>
-        <li><strong>free</strong> — how many times the word “free” appears</li>
-        <li><strong>win</strong> — how many times the word “win” appears</li>
-        <li><strong>offer</strong> — how many times the word “offer” appears</li>
+        <li><strong>free</strong> — hvor mange ganger ordet “free” vises</li>
+        <li><strong>win</strong> — hvor mange ganger ordet “win” vises</li>
+        <li><strong>offer</strong> — hvor mange ganger ordet “offer” vises</li>
       </ul>
-      <p>Imagine an email like:</p>
+      <p>Tenk deg en e-post som:</p>
       <blockquote style="margin: 16px 0; padding: 14px 18px; background: #0b1120; border-left: 4px solid #38bdf8; color: #e2e8f0; border-radius: 10px;">
         “Congratulations! You have won a free offer today. Claim your prize now!”
       </blockquote>
-      <p>Before the model sees it, the text is simplified into a count of suspicious words:</p>
+      <p>Før modellen ser den, forenkles teksten til et antall mistenkelige ord:</p>
       <ul>
         <li>free = 1</li>
         <li>win = 1</li>
         <li>offer = 1</li>
       </ul>
-      <p>This is then converted into a feature vector: <strong>[1, 1, 1]</strong>.</p>
-      <p>The neural network processes this input and outputs a probability, for example around <strong>85–90%</strong> spam likelihood for a message with multiple suspicious signals.</p>
+      <p>Dette konverteres deretter til en funksjonsvektor: <strong>[1, 1, 1]</strong>.</p>
+      <p>Det nevrale nettverket prosesserer dette inputet og gir en sannsynlighet, for eksempel rundt <strong>85–90 %</strong> sannsynlighet for søppelpost for en melding med flere mistenkelige signaler.</p>
     </div>
 
     <div class="card">
-      <h2>Sample prediction preview</h2>
-      <p>This visualization shows a few representative examples the model is asked to classify. The more suspicious the combination of words, the higher the spam probability. It is a quick sanity check to see whether the network is behaving in a sensible way for simple toy examples.</p>
-      <img src="python/AI/NN/generated/sample_predictions.png" alt="Sample spam prediction chart" style="width:100%; border-radius: 12px; border:1px solid #334155; margin-top: 12px; background: #f8fafc;" />
+      <h2>Eksempel på prediksjon</h2>
+      <p>Denne visualiseringen viser noen representative eksempler modellen blir bedt om å klassifisere. Jo mer mistenkelig kombinasjonen av ord er, desto høyere blir sannsynligheten for søppelpost. Det er en rask sanity check for å se om nettverket oppfører seg på en fornuftig måte for enkle eksempeldata.</p>
+      <img src="python/AI/NN/generated/sample_predictions.png" alt="Diagram for eksempel på prediksjon for søppelpost" style="width:100%; border-radius: 12px; border:1px solid #334155; margin-top: 12px; background: #f8fafc;" />
     </div>
 
     <div class="bottom-links">
-      <a href="filter-showcase.html">Image filtering showcase</a>
-      <a href="image-editing.html">Image editing project</a>
-      <a href="index.html">Main portfolio page</a>
+      <a href="filter-showcase.html">Bildefiltreringsdemo</a>
+      <a href="image-editing.html">Bildebehandlingsprosjekt</a>
+      <a href="index.html">Hovedside for portefølje</a>
     </div>
   </div>
 </body>
