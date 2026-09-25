@@ -1,4 +1,4 @@
-from utility import relu_act, sigmoid_act, softmax_act  # activation
+from utility import relu_act, leaky_relu_act, sigmoid_act, softmax_act  # activation
 from utility import bce_loss, cce_loss                  # loss
 from utility import minmax, standard                    # scaling
 import numpy as np
@@ -120,7 +120,7 @@ class NeuralNet:
             pre_acts, acts = self.forward(X_norm)            # forward pass
             self.backward(Y, pre_acts, acts)                 # backward pass
 
-            if (epoch + 1) % 50 == 0 or epoch == 0:
+            if (epoch + 1) % 100 == 0 or epoch == 0:
                 loss = self.loss_function.func(Y, acts[-1])  # use last A as output
                 print(f"Epoch {epoch+1:3} - Loss: {loss:.4f}")
 
@@ -158,7 +158,12 @@ class NeuralNet:
 
         # map names back to function-objects
         norm_map = {"minmax": minmax, "standard": standard}
-        act_map = {"relu": relu_act, "sigmoid": sigmoid_act, "softmax": softmax_act}
+        act_map = {
+            "relu": relu_act,
+            "leaky_relu": leaky_relu_act,
+            "sigmoid": sigmoid_act,
+            "softmax": softmax_act,
+        }
         loss_map = {"binary_cross_entropy": bce_loss, "categorical_cross_entropy": cce_loss}
 
         # get layer sizes from weights

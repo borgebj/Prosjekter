@@ -1,5 +1,5 @@
 from utility import get_predictions, print_prediction
-from utility import relu_act, sigmoid_act, bce_loss
+from utility import relu_act, leaky_relu_act, sigmoid_act, bce_loss
 from neural_network import NeuralNet
 import numpy as np
 
@@ -21,22 +21,38 @@ def generate_samples(n):
     y_aug = []
 
     for _ in range(n):
-        free = np.random.randint(0, 4)      # maybe 0-3 occurrences
-        win = np.random.randint(0, 2)       # maybe 0-1 occurrences
-        offer = np.random.randint(0, 3)     # maybe 0-2 occurrences
+        free = np.random.randint(0, 6)
+        win = np.random.randint(0, 4)
+        offer = np.random.randint(0, 4)
 
         X_aug.append([free, win, offer])
 
-        # rule:  if at least 2 keywords present, mark as spam
-        y_aug.append([1 if sum([free>0, win>0, offer>0]) >= 2 else 0])
+        score = 0.6 * free + 1.0 * win + 0.7 * offer
+
+        if free > 0 and win > 0:
+            score += 1.0
+
+        if win > 0 and offer > 0:
+            score += 0.5
+
+        score += np.random.normal(0, 0.5)
+
+        # spam threshold
+        is_spam = score >= 3.5
+        y_aug.append([int(is_spam)])
 
     return np.array(X_aug), np.array(y_aug)
+
 
 
 # ------------------ Data ------------------
 np.set_printoptions(precision=4, suppress=True)
 
 # Original data
+# 12 samples, 3 features (keywords)
+# first feature = "free",
+# second feature = "win",
+# third feature = "offer"
 X = np.array([
     [2, 0, 1],  # "free" and "offer"
     [0, 1, 0],  # "win"
@@ -68,7 +84,10 @@ y = np.array([
     [0],  # not spam
 ])
 
-X_extra, y_extra = generate_samples(100)    # 20 synthetic samples
+# generate 500 additional samples for training
+X_extra, y_extra = generate_samples(500)
+
+# combine original and generated data
 X = np.vstack([X, X_extra])
 y = np.vstack([y, y_extra])
 
@@ -77,49 +96,59 @@ indices = np.random.permutation(len(X))
 X_shuffled = X[indices]
 y_shuffled = y[indices]
 
-# split sizes
-train_split = int(0.6 * len(X))  # 60% training         (seen data)
-dev_split = int(0.2 * len(X))    # 20% validation       (hyperparameter tuning etc)
-test_split = dev_split           # 20% testing          (unseen data)
+# split boundaries
+# 60% training, 20% validation, 20% testing
+train_end = int(0.6 * len(X))
+dev_end = train_end + int(0.2 * len(X))
 
-# data split
-X_train = X_shuffled[:train_split]
-y_train = y_shuffled[:train_split]
+# training data split (seen) = 60%
+X_train = X_shuffled[:train_end]
+y_train = y_shuffled[:train_end]
 
-X_dev = X_shuffled[train_split:train_split+dev_split]
-y_dev = y_shuffled[train_split:train_split+dev_split]
+# validation data split (unseen) = 20%
+X_dev = X_shuffled[train_end:dev_end]
+y_dev = y_shuffled[train_end:dev_end]
 
-X_test = X_shuffled[train_split+dev_split:]
-y_test = y_shuffled[train_split+dev_split:]
+# test data split (unseen) = 20%
+X_test = X_shuffled[dev_end:]
+y_test = y_shuffled[dev_end:]
+
+# Z-score feature normalization
+X_mean = X_train.mean(axis=0)
+X_std = X_train.std(axis=0) + 1e-8
+
+X_train_scaled = (X_train - X_mean) / X_std
+X_dev_scaled = (X_dev - X_mean) / X_std
+X_test_scaled = (X_test - X_mean) / X_std
 
 # ------------------ Neural Network ------------------
 nn = NeuralNet(
-    input_size=3, hidden_size=[2], output_size=1,       # 3-2-1 architecture
-    hidden_activation=relu_act,
-    output_activation=sigmoid_act,                      # relu + sigmoid + bce
+    input_size=3, hidden_size=[4], output_size=1,       # 3-4-1 architecture
+    hidden_activation=leaky_relu_act,
+    output_activation=sigmoid_act,                      # leaky_relu + sigmoid + bce
     loss_function=bce_loss,
-    lr=0.1                                              # 0.1 learning rate
+    lr=0.01                                             # 0.01 learning rate
 )
 
-
 # ------------------ Training ------------------
-nn.train(X_train, y_train, epochs=500)   # raw data, no manual normalization
+nn.train(X_train_scaled, y_train, epochs=10000)  # train on normalized training data
 
 # saves to file
-nn.save("spam_detector.pt")
+nn.save("spam_detector.pt")                                # save model weights and biases
+np.savez("scaler_params.npz", mean=X_mean, std=X_std)  # save normalization params
 
 
 # ------------------ Print Results ------------------
-pred_train, classes_train = get_predictions(nn, X_train)
-print(f"\n\nTrain data (seen) ({train_split})")
+pred_train, classes_train = get_predictions(nn, X_train_scaled)
+print(f"\n\nTrain data (seen) ({len(X_train)})")
 print_prediction(X_train, y_train, pred_train, classes_train)
 
-pred_dev, classes_dev = get_predictions(nn, X_dev)
-print(f"\nDev data (unseen) ({dev_split})")
+pred_dev, classes_dev = get_predictions(nn, X_dev_scaled)
+print(f"\nDev data (unseen) ({len(X_dev)})")
 print_prediction(X_dev, y_dev, pred_dev, classes_dev)
 
-pred_test, classes_test = get_predictions(nn, X_test)
-print(f"\nTest data (unseen) ({test_split})")
+pred_test, classes_test = get_predictions(nn, X_test_scaled)
+print(f"\nTest data (unseen) ({len(X_test)})")
 print_prediction(X_test, y_test, pred_test, classes_test)
 
-nn.evaluate(X_test, y_test)
+nn.evaluate(X_test_scaled, y_test)

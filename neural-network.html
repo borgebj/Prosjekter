@@ -75,6 +75,12 @@
     </div>
 
     <div class="card">
+      <h2>Model overview</h2>
+      <p>This toy project uses a simple neural network structure: three input features, a hidden layer, and one output node that predicts whether the input looks like spam.</p>
+      <img src="python/AI/NN/generated/model_architecture.png" alt="Toy neural network architecture diagram" style="width:100%; border-radius: 12px; border:1px solid #334155; margin-top: 12px;" />
+    </div>
+
+    <div class="card">
       <h2>What it shows</h2>
       <ul>
         <li>Custom neural network implementation</li>
@@ -85,12 +91,31 @@
     </div>
 
     <div class="card">
-      <h2>Project focus</h2>
+      <h2>How the data is represented</h2>
+      <p>The model works on a tiny synthetic dataset built around three simple features:</p>
       <ul>
-        <li>Machine learning basics</li>
-        <li>Experiment-driven coding</li>
-        <li>Data preprocessing and classification</li>
+        <li><strong>free</strong> — how many times the word “free” appears</li>
+        <li><strong>win</strong> — how many times the word “win” appears</li>
+        <li><strong>offer</strong> — how many times the word “offer” appears</li>
       </ul>
+      <p>Imagine an email like:</p>
+      <blockquote style="margin: 16px 0; padding: 14px 18px; background: #0b1120; border-left: 4px solid #38bdf8; color: #e2e8f0; border-radius: 10px;">
+        “Congratulations! You have won a free offer today. Claim your prize now!”
+      </blockquote>
+      <p>Before the model sees it, the text is simplified into a count of suspicious words:</p>
+      <ul>
+        <li>free = 1</li>
+        <li>win = 1</li>
+        <li>offer = 1</li>
+      </ul>
+      <p>This is then converted into a feature vector: <strong>[1, 1, 1]</strong>.</p>
+      <p>The neural network processes this input and outputs a probability, for example around <strong>85–90%</strong> spam likelihood for a message with multiple suspicious signals.</p>
+    </div>
+
+    <div class="card">
+      <h2>Sample prediction preview</h2>
+      <p>This visualization shows a few representative examples the model is asked to classify. The more suspicious the combination of words, the higher the spam probability. It is a quick sanity check to see whether the network is behaving in a sensible way for simple toy examples.</p>
+      <img src="python/AI/NN/generated/sample_predictions.png" alt="Sample spam prediction chart" style="width:100%; border-radius: 12px; border:1px solid #334155; margin-top: 12px; background: #f8fafc;" />
     </div>
 
     <div class="bottom-links">

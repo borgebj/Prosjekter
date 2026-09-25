@@ -20,12 +20,13 @@ def get_predictions(nn, X, threshold=0.5):
 
 
 # ------------------------------------------------------
-def print_prediction(X, y_true, probs, classes):
-    """Print predictions alongside true labels and feature values."""
-    print("\n========== Testing Predictions ==========")
-    print("Data\t  True\t  Prediction")
-    for features, label, prob, cls in zip(X, y_true, probs, classes):
-        print(f"{features} = [{label[0]}] --> Pred: {prob[0]*100:6.2f}% ({cls})")
+def print_prediction(X, y_true, probs, classes, limit=10):
+    """Print predictions alongside true labels and feature values (limited output)."""
+    print(f"\n========== Testing Predictions (First {min(limit, len(X))}) ==========")
+    print("\tData\t\t  \t\t  Prediction")
+
+    for features, label, prob, cls in zip(X[:limit], y_true[:limit], probs[:limit], classes[:limit]):
+        print(f"{features} = [{label[0]}] --> Pred: {prob[0] * 100:6.2f}% ({cls})")
 
 
 # ------------------------------------------------------
@@ -42,6 +43,13 @@ def relu_derivative(x):
     """Derivative of ReLU used in backpropagation"""
     return np.where(x > 0, 1, 0)
 
+def leaky_relu(x, alpha=0.01):
+    """LeakyReLu activation function in hidden layer"""
+    return np.where(x > 0, x , x * alpha)
+
+def leaky_relu_derivative(x, alpha=0.01):
+    """Derivative of LeakyReLU used in backpropagation"""
+    return np.where(x > 0, 1, alpha)
 
 # ------------------------------------------------------
 
@@ -177,6 +185,7 @@ class Loss:
 
 # ==================== Activation Instances ====================
 relu_act = Activation(relu, relu_derivative)
+leaky_relu_act = Activation(leaky_relu, leaky_relu_derivative)
 sigmoid_act = Activation(sigmoid, sigmoid_derivative)
 softmax_act = Activation(softmax, softmax_derivative)
 
