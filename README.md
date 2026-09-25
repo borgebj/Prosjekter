@@ -1,6 +1,6 @@
 # Prosjekter
 
-Dette repoet er en liten samling av eksperimenter, idéer og små programmer jeg har bygget for å lære, teste og utforske forskjellige konsepter. Det meste er i Python, med fokus på bildebehandling, visualisering og litt maskinlæring.
+Dette repoet er en liten samling av eksperimenter, ideer og små programmer jeg har bygget for å lære, teste og utforske forskjellige konsepter. Det meste er i Python, med fokus på bildebehandling, visualisering og litt maskinlæring.
 
 En liten nettside er laget for å vise noen av disse prosjektene på en rask og enkel måte.
 
@@ -19,12 +19,13 @@ En liten nettside er laget for å vise noen av disse prosjektene på en rask og 
 
 ## Kort oversikt
 
-- [Neural Network](python/AI/NN/README.md) — et nevralt nettverk bygget fra bunnen av
-- [Bildebehandling](python/image_editing/README.md) — filtre, pixelmanipulering og visuelle effekter
-- [Visuelt showcase](python/showcase/README.md) — en rask visuell demo av resultatene
-- [Java-eksperimenter](java/tull/README.md) — mindre prøver og små utviklingsøkter
+- [Neural Network](python/AI/NN/README.md) -- et nevralt nettverk bygget fra bunnen av
+- [Bildebehandling](python/image_editing/README.md) -- filtre, pixelmanipulering og visuelle effekter
+- [Visuelt showcase](python/showcase/README.md) -- en rask visuell demo av resultatene
+- [Java-eksperimenter](java/tull/README.md) -- mindre prøver og små utviklingsøkter
 
 ## Kom i gang
+Mesteparten av filene kjøres individuelt i egne mapper.
 
 ```bash
 cd python
