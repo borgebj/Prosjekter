@@ -1,0 +1,147 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Portfolio</title>
+  <style>
+    :root {
+      --bg: #020817;
+      --panel: #0f172a;
+      --panel-2: #111827;
+      --border: #334155;
+      --text: #e2e8f0;
+      --muted: #cbd5e1;
+      --link: #f8fafc;
+      --link-hover: #bfdbfe;
+      --accent: #7dd3fc;
+      --shadow: rgba(15, 23, 42, 0.45);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #020817 0%, #0f172a 100%);
+      color: var(--text);
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 24px 72px;
+    }
+    .hero {
+      text-align: center;
+      padding: 40px 0 20px;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      letter-spacing: -0.04em;
+    }
+    .subtitle {
+      margin: 12px auto 0;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 26px;
+      margin-top: 42px;
+    }
+    .folder {
+      display: flex;
+      flex-direction: column;
+      text-decoration: none;
+      color: var(--text);
+      background: linear-gradient(180deg, rgba(17,24,39,0.95), rgba(15,23,42,0.98));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      min-height: 250px;
+      padding: 22px;
+      box-shadow: 0 20px 30px var(--shadow);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .folder:hover {
+      transform: translateY(-3px);
+      border-color: var(--accent);
+    }
+    .folder-icon {
+      font-size: 3rem;
+      margin-bottom: 18px;
+    }
+    .folder h2 {
+      margin: 0 0 12px;
+      font-size: 1.5rem;
+    }
+    .folder p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .folder .tag {
+      display: inline-block;
+      margin-top: auto;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(125, 211, 252, 0.4);
+      color: var(--link);
+      background: rgba(125, 211, 252, 0.08);
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
+      width: fit-content;
+    }
+    .bottom-links {
+      margin-top: 54px;
+      padding-top: 22px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+    }
+    a.link {
+      color: var(--link);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1.5px;
+      font-weight: 600;
+    }
+    a.link:hover {
+      color: var(--link-hover);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <h1>Projects</h1>
+      <p class="subtitle">
+        A collection of side projects and experiments focused on Python, image processing, and learning by building.
+      </p>
+    </div>
+
+    <div class="cards">
+      <a class="folder" href="filter-showcase.html">
+        <div class="folder-icon">📁</div>
+        <h2>Image filtering</h2>
+        <p>Experiments with grayscale, sepia, pixelation, ASCII conversion and visual transformations.</p>
+        <span class="tag">Filters • Image tools • Visual experiments</span>
+      </a>
+
+      <a class="folder" href="neural-network.html">
+        <div class="folder-icon">🧠</div>
+        <h2>Neural network</h2>
+        <p>Custom feedforward model built from scratch for simple classification and learning experiments.</p>
+        <span class="tag">Read project</span>
+      </a>
+    </div>
+
+    <div class="bottom-links">
+      <a class="link" href="filter-showcase.html">Image filtering showcase</a>
+      <a class="link" href="neural-network.html">Neural network project</a>
+    </div>
+  </div>
+</body>
+</html>
