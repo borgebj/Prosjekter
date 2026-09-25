@@ -12,7 +12,7 @@ En liten nettside er laget for å vise noen av disse prosjektene på en rask og 
 
 <p align="center">
   <a href="https://borgebj.github.io/Prosjekter/">
-    <img src="https://borgebj.github.io/Prosjekter/website_preview.png" alt="Portfolio website preview" width="700" />
+    <img src="https://borgebj.github.io/Prosjekter/website_preview.png" alt="website preview" width="700" />
   </a>
 </p>
 
