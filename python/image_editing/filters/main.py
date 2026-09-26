@@ -4,9 +4,9 @@ from python.image_editing.filters import utility
 
 
 def main():
-    file = "anuc"
+    file = "ekkel"
     filename = f"../images/{file}.jpg"
-    filter_name = "ascii"
+    filter_name = "pixelator"  # "pixelator", "ascii", "blur"
     implementation = "numpy"
 
     img = image_io.read_image(filename)
@@ -21,7 +21,7 @@ def main():
     filter_fn = images.get_filter(filter_name, implementation)
     filter_args = {
         "pixelator": {"blocksize": 80},  # higher -> more pixels
-        "ascii": {"scale": 1}            # higher -> smaller resolution
+        "ascii": {"scale": 2}            # higher -> smaller resolution
     }
 
     # times and runs the function

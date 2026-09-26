@@ -60,7 +60,8 @@ def run():
     filename = utility.random_image(image_directory)
     file = filename.rsplit(".", 1)[0]
     filename = f"{image_directory}/{filename}"
-    img = image_io.read_image(filename)
+    original_img = image_io.read_image(filename)
+    img = original_img.copy()
 
     available_filters = [
         ("greyscale", "numpy", {}),
@@ -79,6 +80,9 @@ def run():
     # Show transformed image before guessing
     image_io.display(img)
     guess = ask_guess()
+
+    # Always show the original image once the answer has been submitted.
+    image_io.display(original_img)
 
     # give the image a moment to close automatically after the result is shown
     if guess and guess.lower() == file.lower():
