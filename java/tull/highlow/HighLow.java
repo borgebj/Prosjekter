@@ -1,4 +1,4 @@
-package highlow;
+package tull.highlow;
 
 import java.util.Scanner;
 import java.util.Random;
@@ -12,7 +12,7 @@ class HighLow {
 
         // scanner-objekt (gir muligheten til input fra bruker)
         Scanner scanner = new Scanner(System.in);
-        System.out.print("\nSkriv inn et tall mellom 0 og 100: ");
+        System.out.print("\nSkriv inn et tall mellom 0 og 100:\n> ");
         int input = scanner.nextInt();
 
         // tallet brukeren skal finne blir satt til et tilfeldig tall mellom 0 og 100
@@ -21,13 +21,13 @@ class HighLow {
         // mens input fra bruker ikke er tallet
         while (input != tall) {
             if (input > 100 || input < 0) {
-                System.out.print("  " + "Feil. Skriv et tall mellom 0 og 100: ");
+                System.out.print("Feil. Skriv et tall mellom 0 og 100:\n> ");
                 input = scanner.nextInt();
             } else if (input > tall) {
-                System.out.print("  " + input + " er for hoyt! Prov igjen: ");
+                System.out.print(input + " er for høyt! Prøv igjen:\n> ");
                 input = scanner.nextInt();
             } else {
-                System.out.print("  " + input + " er for lavt! Prov igjen: ");
+                System.out.print(input + " er for lavt! Prøv igjen:\n> ");
                 input = scanner.nextInt();
             }
         }

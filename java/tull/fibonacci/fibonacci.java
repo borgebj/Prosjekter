@@ -1,4 +1,4 @@
-package fibonacci;
+package tull.fibonacci;
 
 import java.util.Scanner;
 import java.util.InputMismatchException;

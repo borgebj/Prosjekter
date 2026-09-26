@@ -1,4 +1,4 @@
-package kryptering;
+package tull.kryptering;
 
 import java.util.Scanner;
 
@@ -15,8 +15,14 @@ class Krypt {
         System.out.print("Hva er ditt passord: ");
         String passord = scanner.nextLine();
 
+        StringBuilder kryptert = new StringBuilder();
+
+        for (int i = 0; i < passord.length(); i++) {
+            kryptert.append((char) (passord.charAt(i) - +3));
+        }
+
         // skriver ut brukerinput for test
-        System.out.println("Ditt passord er: "+passord);
+        System.out.println("Ditt passord er: "+kryptert);
 
 
         System.out.println("\n----------------------------------------");

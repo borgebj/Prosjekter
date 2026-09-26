@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Luftkvalitet i Norge - IN2000 App</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    .topbar a {
+      color: #f8fafc;
+      text-decoration: underline;
+      font-weight: 600;
+    }
+    h1 {
+      margin: 0;
+      font-size: 2.4rem;
+    }
+    p, li {
+      color: #cbd5e1;
+      line-height: 1.7;
+    }
+    .card {
+      background: #111827;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 24px;
+      margin-top: 22px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    }
+    ul {
+      padding-left: 20px;
+      margin: 10px 0 0;
+    }
+    .screenshots {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin-top: 18px;
+    }
+    .screenshots img {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid #334155;
+      display: block;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    .bottom-links {
+      margin-top: 28px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+    }
+    .bottom-links a {
+      color: #f8fafc;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <h1>Luftkvalitet i Norge (IN2000)</h1>
+      <a href="index.html">Tilbake til hovedside</a>
+    </div>
+
+    <div class="card">
+      <p>Dette er arbeid fra vår gruppe 5 i emnet IN2000 ved Universitetet i Oslo, som viser en fullverdig Android-app som henter og visualiserer sanntids luftkvalitetsdata i Norge ved hjelp av MET Norway API og Google Maps.</p>
+      <p>Appen gir brukerne oversikt over luftkvalitet, målinger, værinformasjon og interaktive kartutsnitt for lokasjoner i hele landet.</p>
+	  <p>Oppgaver og ansvar var fordelt mellom teamet, hvorav jeg hadde hovedansvar for selve API'et og design av kart-siden, samt bruk av google maps API.</p>
+    </div>
+
+    <div class="card">
+      <h2>Appskjermer</h2>
+      <div class="screenshots">
+        <div>
+          <img src="../bilder/hjem.png" alt="Hjem-skjerm med luftkvalitetsoversikt" />
+          <p style="text-align: center; font-size: 0.9rem; margin-top: 8px;">Hjem</p>
+        </div>
+        <div>
+          <img src="../bilder/kart.png" alt="Kartskjerm med lokasjoner" />
+          <p style="text-align: center; font-size: 0.9rem; margin-top: 8px;">Kart</p>
+        </div>
+        <div>
+          <img src="../bilder/favoritter.png" alt="Favoritter-skjerm" />
+          <p style="text-align: center; font-size: 0.9rem; margin-top: 8px;">Favoritter</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Teknisk Arkitektur & Biblioteker</h2>
+      <ul>
+        <li><strong>Arkitektur:</strong> MVVM (Model-View-ViewModel)</li>
+        <li><strong>Datakilder:</strong> MET Norway API (api.met.no) for live luftkvalitetsdata</li>
+        <li><strong>Kart & Posisjon:</strong> Google Maps SDK, Dexter (tillatelser)</li>
+        <li><strong>Nettverk & Parsing:</strong> Fuel HTTP-klient, GSON</li>
+        <li><strong>Visualisering:</strong> MPAndroidChart for grafer</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Interessante Kodesnutter</h2>
+      <p>Her er to sentrale deler av koden fra prosjektet som viser hvordan asynkrone coroutines og robust modellmapping er implementert:</p>
+
+      <h3 style="font-size: 1.1rem; margin-top: 18px; color: #38bdf8;">1. Parallell API-innsamling med Kotlin Coroutines (ViewModel.kt)</h3>
+      <p>Denne funksjonen henter sanntids luftkvalitetsdata fra MET Norway API for alle målestasjoner i Norge parallelt. Ved å bruke Kotlin Coroutines med <code>async</code> og <code>awaitAll</code> utføres nettverkskallene samtidig i bakgrunnen for hver stasjon. Dette hindrer at hovedtråden (UI-tråden) henger seg opp, slik at appen forblir rask og responsiv for brukeren under lasting.</p>
+      <pre style="background: #0b1120; padding: 16px; border-radius: 10px; border: 1px solid #334155; overflow-x: auto; color: #a9b7c6; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; line-height: 1.5;"><code><span style="color: #cc7832;">suspend fun</span> getValues(stasjoner: <span style="color: #9876aa;">MutableList</span>&lt;<span style="color: #9876aa;">Stasjon</span>&gt;) = coroutineScope {
+    stasjoner.map { station -&gt;
+        async {
+            <span style="color: #cc7832;">if</span> (station.eoi.isNullOrEmpty()) <span style="color: #cc7832;">return@async</span>
+            <span style="color: #cc7832;">try</span> {
+                <span style="color: #cc7832;">val</span> valueJson = getData(baseURLMetro, <span style="color: #6a8759;">"/?station=${station.eoi}"</span>)
+                <span style="color: #cc7832;">val</span> objekt = <span style="color: #9876aa;">JSONObject</span>(valueJson)
+                <span style="color: #808080;">// Parser verdier (NO2, PM10, PM25, O3) for stasjonen</span>
+            } <span style="color: #cc7832;">catch</span> (e: <span style="color: #9876aa;">Exception</span>) {
+                <span style="color: #9876aa;">Log</span>.e(<span style="color: #6a8759;">"ViewModel"</span>, <span style="color: #6a8759;">"Error fetching data"</span>, e)
+            }
+        }
+    }.awaitAll()
+}</code></pre>
+
+      <h3 style="font-size: 1.1rem; margin-top: 24px; color: #38bdf8;">2. Robust modellmapping med Gson (Stasjon.kt)</h3>
+      <p>Dette dataklasse-objektet definerer en målestasjon og brukes til å mappe innkommende JSON-data fra API-et ved hjelp av Gson. Ved å bruke <code>@SerializedName(value = "name", alternate = ["station"])</code> sikrer vi at appen automatisk håndterer ulik nomenklatur eller endringer i feltnavn fra eksterne datakilder (f.eks. om stasjonsnavnet heter "name" eller "station") uten at deserialiseringen feiler.</p>
+      <pre style="background: #0b1120; padding: 16px; border-radius: 10px; border: 1px solid #334155; overflow-x: auto; color: #a9b7c6; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; line-height: 1.5;"><code><span style="color: #bbb529;">@Parcelize</span>
+<span style="color: #cc7832;">data class</span> <span style="color: #ffc66d;">Stasjon</span>(
+    <span style="color: #bbb529;">@SerializedName</span>(
+        value = <span style="color: #6a8759;">"name"</span>,
+        alternate = [<span style="color: #6a8759;">"station"</span>]
+    )
+    <span style="color: #cc7832;">var</span> name: <span style="color: #9876aa;">String</span>,
+    <span style="color: #bbb529;">@SerializedName</span>(<span style="color: #6a8759;">"eoi"</span>)
+    <span style="color: #cc7832;">val</span> eoi: <span style="color: #9876aa;">String</span>?,
+    <span style="color: #cc7832;">val</span> longitude: <span style="color: #9876aa;">Double</span>?,
+    <span style="color: #cc7832;">val</span> latitude: <span style="color: #9876aa;">Double</span>?,
+    <span style="color: #cc7832;">var</span> verdier: <span style="color: #9876aa;">HashMap</span>&lt;<span style="color: #9876aa;">String</span>, <span style="color: #9876aa;">Double</span>&gt;? = <span style="color: #9876aa;">HashMap</span>()
+) : <span style="color: #9876aa;">Parcelable</span>, <span style="color: #9876aa;">Serializable</span></code></pre>
+    </div>
+
+    <div class="card">
+      <h2>Prosjektdeltakere</h2>
+      <p>Birgitte Rygg, Bjørn Vittorio Birkelund-Rospigliosi, Børge Bjørnstadjordet, Elias Eide Skotte, Jonas Longva Pettersen & Rie Nyhus.</p>
+    </div>
+
+    <div style="margin-top: 36px;">
+      <a href="https://github.com/borgebj/IN2000-Gruppe-5" target="_blank" style="display: inline-block; padding: 10px 18px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 999px; color: #38bdf8; text-decoration: none; font-weight: 600;">Se kildekode på GitHub ↗</a>
+    </div>
+
+    <div class="bottom-links">
+      <a href="air-quality-app.html">IN2000 Luftkvalitet App</a>
+      <a href="filter-showcase.html">Bildefiltreringsdemo</a>
+      <a href="neural-network.html">Prosjekt om nevralt nettverk</a>
+      <a href="image-editing.html">Bildebehandlingsprosjekt</a>
+      <a href="index.html">Hjemmeside</a>
+    </div>
+  </div>
+</body>
+</html>

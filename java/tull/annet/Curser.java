@@ -1,4 +1,4 @@
-package annet;
+package tull.annet;
 
 import java.util.Scanner;
 
@@ -10,13 +10,13 @@ class Curser {
         int maksTimer = 4;
         int currentTimer = 0;
 
+        // user input
         Scanner scanner = new Scanner(System.in);
-
-        System.out.print("\nVil du starte webm? ");
-
+        System.out.print("\nVil du starte webm?\n> ");
         String inp = scanner.nextLine();
 
-        while (inp.equals("ja")) {
+        // while loop som kjører saå lenge bruker svarer "ja" paa input
+        while (inp.equalsIgnoreCase("ja")) {
 
             try {
                 Thread.sleep(800);
@@ -26,7 +26,7 @@ class Curser {
                 currentTimer++;
                 maksTimer++;
             }
-            catch (InterruptedException e) {}
+            catch (InterruptedException _) {}
         }
         System.out.println();
     }

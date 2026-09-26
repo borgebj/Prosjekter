@@ -1,44 +1,24 @@
-﻿# Image Editing Experiments
+# Bildebehandlings-eksperimenter
 
-This project is a small collection of image-processing experiments built in Python. The focus is on understanding how image filters work, how pixel data is transformed, and how simple visual effects can be created using NumPy and Pillow.
+Dette prosjektet er en liten samling av bildebehandlings-eksperimenter skrevet i Python. Målet er å forstå hvordan bildefiltre fungerer, hvordan pikseldata blir transformert, og hvordan enkle visuelle effekter kan lages ved hjelp av NumPy og Pillow.
 
-## Included concepts
+## Inkluderte konsepter
 
-- Grayscale conversion
-- Sepia tone effects
-- Pixelation
-- Blur
-- ASCII-style image rendering
-- Basic image IO and display utilities
+- **Grayscale** filter
+- **Sepia** effekt
+- **Pixelation**
+- **Blur** (pågående arbeid)
+- **ASCII-style** image rendering
+- **Basic image IO and display utilities**
 
-## Tech stack
+## Verktøy
 
-- Python
-- NumPy
-- Pillow
+- Python, NumPy, Pillow
 
-## Project structure
 
-```text
-image_editing/
-├── blur.py
-├── game.py
-├── README.md
-├── filters/
-│   ├── ascii.py
-│   ├── greyscale.py
-│   ├── image_io.py
-│   ├── images.py
-│   ├── main.py
-│   ├── pixelator.py
-│   ├── sepia.py
-│   └── utility.py
-└── ...
-```
+## Eksempel på bruk
 
-## Example usage
-
-From the `python` directory, install dependencies and run the demo:
+Fra `python`-mappen, installer avhengigheter og kjør demoen:
 
 ```bash
 pip install -r requirements.txt
@@ -46,20 +26,18 @@ cd image_editing/filters
 python main.py
 ```
 
-The project is structured around a reusable image filter pipeline. Each filter can be selected and applied to an image, and the code is designed to make experimentation easy.
+Prosjektet er bygd rundt en gjenbrukbar filter‑pipeline. Hvert filter kan velges og anvendes på et bilde, og koden er utformet for å gjøre eksperimentering enkel.
 
-## What this project demonstrates
+Konfigurasjon gjøres for øyeblikket i `main.py`, hvor du kan velge hvilket filter som skal brukes og hvilket bilde som skal behandles.
 
-This is a good portfolio project because it shows that I can work with:
+## Hva prosjektet viser
 
-- Image arrays and pixel manipulation
-- Computer vision concepts
-- Python libraries for practical visual processing
-- Small experimental project design that is easy to extend
+- Bildearrays og pikselmanipulasjon
+- Konsepter innen datamaskinsyn (computer vision)
+- Python‑biblioteker for praktisk bildebehandling
+- Lite, eksperimentelt prosjekt som er enkelt å utvide
 
-## Possible next steps
+## Mulige neste steg
 
-- Add more filters such as sharpen, vignette, contrast adjustments, and edge detection
-- Add a CLI with selectable filter options
-- Add example output images for each effect
-- Improve the project writing so it is easier to run and understand for a recruiter or collaborator
+- Legg til flere filtre, for eksempel sharpen, vignette, kontrastjustering og kantdeteksjon
+- Legg til et CLI med valgfrie filteralternativer

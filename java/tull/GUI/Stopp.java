@@ -1,15 +1,17 @@
-package GUI;
+package tull.GUI;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.event.EventHandler;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.scene.control.Button;
-import javafx.event.*;
+import javafx.event.ActionEvent;
 
 public class Stopp extends Application {
-    class StoppBehandler implements EventHandler<ActionEvent> {
+
+    static class StoppBehandler implements EventHandler<ActionEvent> {
         @Override
         public void handle(ActionEvent e) {
             Platform.exit();
