@@ -12,9 +12,9 @@
       color: #e2e8f0;
     }
     .container {
-      max-width: 900px;
+      max-width: 1200px;
       margin: 0 auto;
-      padding: 48px 24px 80px;
+      padding: 40px 28px 80px;
     }
     .topbar {
       display: flex;
@@ -36,6 +36,38 @@
     p, li {
       color: #cbd5e1;
       line-height: 1.7;
+    }
+    .story-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+      margin: 24px 0 26px;
+    }
+    .story-panel {
+      background: linear-gradient(180deg, rgba(17,24,39,0.97), rgba(15,23,42,0.97));
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 18px 18px 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      min-height: 150px;
+    }
+    .story-panel .eyebrow {
+      display: inline-block;
+      margin-bottom: 10px;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #7dd3fc;
+      font-weight: 700;
+    }
+    .story-panel h3 {
+      margin: 0 0 8px;
+      font-size: 1.08rem;
+    }
+    .story-panel p {
+      margin: 0;
+      color: #cbd5e1;
+      line-height: 1.6;
     }
     .card {
       background: #111827;
@@ -84,15 +116,33 @@
       <a href="index.html">Tilbake til hovedside</a>
     </div>
 
-    <div class="card">
-      <p>Dette prosjektet er et lite nevralt nettverk bygget fra bunnen for klassifiseringsoppgaver. Tanken er å forstå grunnleggende konsepter som forward pass, vekter, aktiveringer, tapfunksjoner og treningslogikk uten å stole på et rammeverk.</p>
-      <p>Det er et godt eksempel på å eksperimentere med maskinlæringskonsepter på en veldig direkte og transparent måte.</p>
+    <div class="story-grid">
+      <div class="story-panel">
+        <span class="eyebrow">Hva jeg bygde</span>
+        <h3>Et nevralt nettverk fra bunnen av</h3>
+        <p>En liten klassifiseringsmodell som lærer å skille mellom mistenkelige og normale meldinger.</p>
+      </div>
+      <div class="story-panel">
+        <span class="eyebrow">Hvordan</span>
+        <h3>Forward pass og backpropagation</h3>
+        <p>Jeg implementerte selve læringsflyten i Python uten rammeverk, så alt blir transparent.</p>
+      </div>
+      <div class="story-panel">
+        <span class="eyebrow">Interessant</span>
+        <h3>Aktivering og tap</h3>
+        <p>ReLU, sigmoid og binary cross-entropy gjør at nettverket kan lære ikke-lineære mønstre.</p>
+      </div>
+      <div class="story-panel">
+        <span class="eyebrow">Resultat</span>
+        <h3>Prediksjon med tydelig signal</h3>
+        <p>Modellen gir en sannsynlighet for spam, og det blir lett å sjekke om den oppfører seg fornuftig.</p>
+      </div>
     </div>
 
     <div class="card">
       <h2>Modelloversikt</h2>
       <p>Dette mini-prosjektet bruker en enkel struktur for et nevralt nettverk: tre input-funksjoner, et skjult lag og én outputnode som forutsier om input ser ut som søppelpost.</p>
-      <img src="python/AI/NN/generated/model_architecture.png" alt="Diagram over enkel nevralt nettverksarkitektur" style="width:100%; border-radius: 12px; border:1px solid #334155; margin-top: 12px;" />
+      <img src="python/AI/NN/generated/model_architecture.png" alt="Diagram over enkel nevralt nettverksarkitektur" style="display:block; width:79.2%; margin: 12px auto 0; border-radius: 12px; border:1px solid #334155;" />
     </div>
 
     <div class="card">
@@ -130,7 +180,7 @@
     <div class="card">
       <h2>Eksempel på prediksjon</h2>
       <p>Denne visualiseringen viser noen representative eksempler modellen blir bedt om å klassifisere. Jo mer mistenkelig kombinasjonen av ord er, desto høyere blir sannsynligheten for søppelpost. Det er en rask sanity check for å se om nettverket oppfører seg på en fornuftig måte for enkle eksempeldata.</p>
-      <img src="python/AI/NN/generated/sample_predictions.png" alt="Diagram for eksempel på prediksjon for søppelpost" style="width:100%; border-radius: 12px; border:1px solid #334155; margin-top: 12px; background: #f8fafc;" />
+      <img src="python/AI/NN/generated/sample_predictions.png" alt="Diagram for eksempel på prediksjon for søppelpost" style="display:block; width:79.2%; margin: 12px auto 0; border-radius: 12px; border:1px solid #334155; background: #f8fafc;" />
     </div>
 
     <div class="card">

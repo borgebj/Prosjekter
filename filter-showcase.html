@@ -12,9 +12,9 @@
       color: #e2e8f0;
     }
     .container {
-      max-width: 1100px;
+      max-width: 1200px;
       margin: 0 auto;
-      padding: 40px 24px 80px;
+      padding: 40px 28px 80px;
     }
     .topbar {
       display: flex;
@@ -69,11 +69,53 @@
       color: #cbd5e1;
       line-height: 1.8;
     }
+    .story-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 18px;
+      margin: 32px 0;
+    }
+    .story-panel {
+      background: linear-gradient(180deg, rgba(17,24,39,0.97), rgba(15,23,42,0.97));
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 18px 18px 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      min-height: 170px;
+    }
+    .story-panel .eyebrow {
+      display: inline-block;
+      margin-bottom: 10px;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #7dd3fc;
+      font-weight: 700;
+    }
+    .story-panel h3 {
+      margin: 0 0 10px;
+      font-size: 1.1rem;
+    }
+    .story-panel p {
+      margin: 0;
+      color: #cbd5e1;
+      line-height: 1.7;
+    }
     .cards {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 20px;
       margin-top: 32px;
+    }
+    @media (max-width: 900px) {
+      .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 560px) {
+      .cards {
+        grid-template-columns: 1fr;
+      }
     }
     .card {
       background: #111827;
@@ -116,15 +158,38 @@
       <a href="index.html">Tilbake til hovedside</a>
     </div>
 
-    <p>Dette prosjektet er en liten samling av Python-eksperimenter rundt bildebehandling. Fokus er på å forstå hvordan filtre fungerer, hvordan piksler blir transformert og hvordan visuelle effekter kan opprettes med kode.</p>
-    <p>Det inkluderer gråskala-konvertering, sepia-effekter, pikselering, ASCII-lignende rendering og enkle verktøy for å lese og vise bilder.</p>
+    <p>Dette prosjektet er en liten samling av Python-eksperimenter rundt bildebehandling. Fokus er på å forstå hvordan filtre fungerer, hvordan piksler blir transformert, og hvordan visuelle effekter kan opprettes med kode.</p>
+    <p>Jeg har brukt prosjektet til å teste både den mest direkte, “for hver piksel”-tilnærmingen og mer kraftfulle NumPy-løsninger, slik at man kan se både den konseptuelle logikken og hvorfor vektorisering gir en stor forskjell i ytelse.</p>
+
+    <div class="story-grid">
+      <div class="story-panel">
+        <span class="eyebrow">Hva jeg bygde</span>
+        <h3>Filter-demoer for bildeeffekter</h3>
+        <p>Gråskala, sepia, blur, pixelering og ASCII-rendering i én liten visuell showcase.</p>
+      </div>
+      <div class="story-panel">
+        <span class="eyebrow">Hvordan</span>
+        <h3>Python + NumPy pipeline</h3>
+        <p>Bildet leses inn, transformeres i filterfunksjoner og eksporteres som sammenlignbare resultater.</p>
+      </div>
+      <div class="story-panel">
+        <span class="eyebrow">Interessant</span>
+        <h3>Python vs. NumPy</h3>
+        <p>Samme effekt kan løses med løkker eller vektorisert kode, og ytelsesforskellen er stor.</p>
+      </div>
+      <div class="story-panel">
+        <span class="eyebrow">Resultat</span>
+        <h3>Visualisering av konseptet</h3>
+        <p>Originalen blir tydelig forskjellig fra de bearbeidede variantene, som gjør filtereffekten lett å forstå.</p>
+      </div>
+    </div>
 
     <div class="notes">
       <h2>Prosjektnotater</h2>
       <ul>
-        <li>Bildebehandlingsarbeid ligger i samme filterflyt.</li>
+        <li>Filterarbeidet ligger i samme pipeline og er lett å gjenbruke.</li>
         <li>Eksperimentene inkluderer gråskala, sepia, pikselering, blur og ASCII-rendering.</li>
-        <li>Eksemplene nedenfor er hovedproduktene i prosjektet.</li>
+        <li>Det mest interessante felet er ikke “hva som ser bra ut”, men “hvor raskt og elegant koden faktisk gjør beregningen.”</li>
       </ul>
     </div>
 
@@ -177,6 +242,7 @@
       <p style="margin: 0 0 10px;">Her er noen av de mest illustrative filter-implementasjonene fra prosjektet. De viser hvordan piksler transformeres, hvordan lokale områder behandles, og hvordan visuelle effekter oppnås med ganske liten kode.</p>
 
       <h3 style="font-size: 1.05rem; margin: 18px 0 8px; color: #38bdf8;">1. Gråskala: vekting av RGB-kanaler</h3>
+      <p>Dette er et klassisk eksempel på en enkel men viktig transformasjon. Hver kanal får en egen vekt, og resultatet blir et bilde som fanger lysstyrke i stedet for farge.</p>
       <pre><code><span style="color: #cc7832;">def</span> <span style="color: #ffc66d;">numpy_greyscale</span>(image: np.ndarray) -&gt; np.ndarray:
     red = image[..., 0] * 0.21
     green = image[..., 1] * 0.72
@@ -188,6 +254,7 @@
     <span style="color: #cc7832;">return</span> gray_image.astype(np.uint8)</code></pre>
 
       <h3 style="font-size: 1.05rem; margin: 18px 0 8px; color: #38bdf8;">2. Sepia: lineær fargekombinasjon</h3>
+      <p>Sepia vises som en liten color-matrix-operasjon: hver pixel multipliseres med en fargetransform og blir dermed varmere og mer “filmisk”.</p>
       <pre><code><span style="color: #cc7832;">def</span> <span style="color: #ffc66d;">numpy_sepia</span>(image: np.ndarray, k: float = 1.0) -&gt; np.ndarray:
     sepia_matrix = np.array([
         [0.393, 0.769, 0.189],
@@ -202,6 +269,7 @@
     <span style="color: #cc7832;">return</span> sepia_image.astype(np.uint8)</code></pre>
 
       <h3 style="font-size: 1.05rem; margin: 18px 0 8px; color: #38bdf8;">3. Blur: gaussisk kernel over nabopiksler</h3>
+      <p>Dette er hvor det blir ekstra interessant. En gaussisk blur bruker en liten lokal kernel som “veier” nabopiksler, og det er et klassisk eksempel på en operation som er både visuell og beregningsmessig tung.</p>
       <pre><code><span style="color: #cc7832;">def</span> <span style="color: #ffc66d;">gaussian_kernel</span>(kernel_size, sigma=1.0) -&gt; np.ndarray:
     radius = kernel_size // 2
     kernel = np.zeros((kernel_size, kernel_size))
@@ -213,6 +281,11 @@
 
     kernel /= kernel.sum()
     <span style="color: #cc7832;">return</span> kernel</code></pre>
+
+      <div class="notes" style="margin-top: 28px;">
+        <h2>Python vs. NumPy: hvorfor dette faktisk betyr noe</h2>
+        <p style="margin: 0;">Den mest interessante delen av prosjektet er ikke filteret i seg selv, men hvordan det kan implementeres på to nivåer. En ren Python-løsning itererer over hvert piksel og hver nabo i en løkke, mens NumPy bruker vektorisering og opererer på hele arrays på én gang. Det gir samme visuelle resultat, men med en stor forskjell i hastighet og kodekompleksitet.</p>
+      </div>
     </div>
 
     <div style="margin-top: 36px;">
