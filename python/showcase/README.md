@@ -13,7 +13,7 @@ Dette er en liten visuell demonstrasjon av filtere og effekter som finnes i repo
   </tr>
   <tr>
     <td align="center"><strong>ASCII</strong><br><img src="generated/05_ascii.png" width="420" /></td>
-    <td align="center"><strong>Blur placeholder</strong><br><img src="generated/06_blur_placeholder.png" width="420" /></td>
+    <td align="center"><strong>Blur</strong><br><img src="generated/06_blur.png" width="420" /></td>
   </tr>
 </table>
 

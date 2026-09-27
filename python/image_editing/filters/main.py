@@ -4,10 +4,10 @@ from python.image_editing.filters import utility
 
 
 def main():
-    file = "ekkel"
+    file = "mexico"
     filename = f"../images/{file}.jpg"
-    filter_name = "pixelator"  # "pixelator", "ascii", "blur"
-    implementation = "numpy"
+    filter_name = "blur"  # "pixelator", "ascii", "blur"
+    implementation = "numpy"  # "python", "numpy"
 
     img = image_io.read_image(filename)
 
@@ -15,13 +15,14 @@ def main():
     # img = image_io.random_image(1920, 1200)
 
     # scaling
-    # img = utility.rescale(img, scale=3)
+    img = utility.rescale(img, scale=1) # higher -> smaller resolution
 
     # load filter, get correct args
     filter_fn = images.get_filter(filter_name, implementation)
     filter_args = {
         "pixelator": {"blocksize": 80},  # higher -> more pixels
-        "ascii": {"scale": 2}            # higher -> smaller resolution
+        "ascii": {"scale": 2},           # higher -> smaller resolution
+        "blur": {"sigma": 5},            # higher -> more blur
     }
 
     # times and runs the function
