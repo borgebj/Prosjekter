@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bildefiltreringsdemo</title>
+  <title>Bildebehandling</title>
   <style>
     body {
       margin: 0;
@@ -36,6 +36,21 @@
     p {
       color: #cbd5e1;
       line-height: 1.6;
+    }
+    pre {
+      background: #0b1120;
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      overflow-x: auto;
+      color: #a9b7c6;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      margin-top: 12px;
+    }
+    code {
+      font-family: 'Courier New', Courier, monospace;
     }
     .notes {
       background: #111827;
@@ -97,17 +112,18 @@
 <body>
   <div class="container">
     <div class="topbar">
-      <h1>Bildefiltreringsdemo</h1>
+      <h1>Bildebehandling</h1>
       <a href="index.html">Tilbake til hovedside</a>
     </div>
 
-    <p>Noen av de visuelle eksperimentene i dette repoet, bygget med samme bildebehandlingslogikk som brukes i prosjektet.</p>
+    <p>Dette prosjektet er en liten samling av Python-eksperimenter rundt bildebehandling. Fokus er på å forstå hvordan filtre fungerer, hvordan piksler blir transformert og hvordan visuelle effekter kan opprettes med kode.</p>
+    <p>Det inkluderer gråskala-konvertering, sepia-effekter, pikselering, ASCII-lignende rendering og enkle verktøy for å lese og vise bilder.</p>
 
     <div class="notes">
       <h2>Prosjektnotater</h2>
       <ul>
         <li>Bildebehandlingsarbeid ligger i samme filterflyt.</li>
-        <li>Eksperimentene inkluderer gråskala, sepia, pikselering og ASCII-rendering.</li>
+        <li>Eksperimentene inkluderer gråskala, sepia, pikselering, blur og ASCII-rendering.</li>
         <li>Eksemplene nedenfor er hovedproduktene i prosjektet.</li>
       </ul>
     </div>
@@ -154,6 +170,49 @@
           <h2>Blur</h2>
         </div>
       </div>
+    </div>
+
+    <div class="notes" style="margin-top: 36px;">
+      <h2>Interessante kodesnutter</h2>
+      <p style="margin: 0 0 10px;">Her er noen av de mest illustrative filter-implementasjonene fra prosjektet. De viser hvordan piksler transformeres, hvordan lokale områder behandles, og hvordan visuelle effekter oppnås med ganske liten kode.</p>
+
+      <h3 style="font-size: 1.05rem; margin: 18px 0 8px; color: #38bdf8;">1. Gråskala: vekting av RGB-kanaler</h3>
+      <pre><code><span style="color: #cc7832;">def</span> <span style="color: #ffc66d;">numpy_greyscale</span>(image: np.ndarray) -&gt; np.ndarray:
+    red = image[..., 0] * 0.21
+    green = image[..., 1] * 0.72
+    blue = image[..., 2] * 0.07
+
+    gray_image = red + green + blue
+    gray_image = np.stack([gray_image] * 3, axis=-1)
+
+    <span style="color: #cc7832;">return</span> gray_image.astype(np.uint8)</code></pre>
+
+      <h3 style="font-size: 1.05rem; margin: 18px 0 8px; color: #38bdf8;">2. Sepia: lineær fargekombinasjon</h3>
+      <pre><code><span style="color: #cc7832;">def</span> <span style="color: #ffc66d;">numpy_sepia</span>(image: np.ndarray, k: float = 1.0) -&gt; np.ndarray:
+    sepia_matrix = np.array([
+        [0.393, 0.769, 0.189],
+        [0.349, 0.686, 0.168],
+        [0.272, 0.534, 0.131],
+    ])
+
+    sepia_image = image @ sepia_matrix.T
+    sepia_image = (sepia_image * k) + image * (1 - k)
+    sepia_image = sepia_image.clip(0, 255)
+
+    <span style="color: #cc7832;">return</span> sepia_image.astype(np.uint8)</code></pre>
+
+      <h3 style="font-size: 1.05rem; margin: 18px 0 8px; color: #38bdf8;">3. Blur: gaussisk kernel over nabopiksler</h3>
+      <pre><code><span style="color: #cc7832;">def</span> <span style="color: #ffc66d;">gaussian_kernel</span>(kernel_size, sigma=1.0) -&gt; np.ndarray:
+    radius = kernel_size // 2
+    kernel = np.zeros((kernel_size, kernel_size))
+
+    <span style="color: #cc7832;">for</span> y <span style="color: #cc7832;">in</span> range(-radius, radius + 1):
+        <span style="color: #cc7832;">for</span> x <span style="color: #cc7832;">in</span> range(-radius, radius + 1):
+            exponent = -(x**2 + y**2) / (2 * sigma**2)
+            kernel[y + radius, x + radius] = np.exp(exponent)
+
+    kernel /= kernel.sum()
+    <span style="color: #cc7832;">return</span> kernel</code></pre>
     </div>
 
     <div style="margin-top: 36px;">

@@ -49,6 +49,21 @@
       padding-left: 20px;
       margin: 10px 0 0;
     }
+    pre {
+      background: #0b1120;
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      overflow-x: auto;
+      color: #a9b7c6;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      margin-top: 12px;
+    }
+    code {
+      font-family: 'Courier New', Courier, monospace;
+    }
     .bottom-links {
       margin-top: 28px;
       display: flex;
@@ -118,14 +133,87 @@
       <img src="python/AI/NN/generated/sample_predictions.png" alt="Diagram for eksempel på prediksjon for søppelpost" style="width:100%; border-radius: 12px; border:1px solid #334155; margin-top: 12px; background: #f8fafc;" />
     </div>
 
+    <div class="card">
+      <h2>Interessante kodesnutter</h2>
+      <p>Dette prosjektet er spesielt godt for å demonstrere hvordan et nevralt nettverk faktisk fungerer, uten å skjule alt bak et rammeverk. Her er tre sentrale deler av koden som viser den tekniske kjernen.</p>
+
+      <h3 style="font-size: 1.1rem; margin-top: 18px; color: #38bdf8;">1. Forward pass og backpropagation</h3>
+      <p>Dette er selve læringsmekanismen: først beregner nettverket en prediksjon, så går det bakover gjennom lagene for å finne feilen, og oppdaterer vektene. Koden viser hvordan hver neuron får en forutsetning (<code>Z</code>), en aktivering (<code>A</code>) og til slutt en feildifferensial som brukes til å justere vektene.</p>
+      <pre><code><span style="color: #cc7832;">def</span> <span style="color: #ffc66d;">forward</span>(self, X):
+    pre_activations = []
+    activations = [X]
+
+    <span style="color: #cc7832;">for</span> i <span style="color: #cc7832;">in</span> range(len(self.weights)):
+        Z = activations[-1] @ self.weights[i] + self.biases[i]
+        pre_activations.append(Z)
+
+        <span style="color: #cc7832;">if</span> i == len(self.weights) - 1:
+            A = self.output_activation.func(Z)
+        <span style="color: #cc7832;">else</span>:
+            A = self.hidden_activation.func(Z)
+
+        activations.append(A)
+
+    <span style="color: #cc7832;">return</span> pre_activations, activations
+
+
+<span style="color: #cc7832;">def</span> <span style="color: #ffc66d;">backward</span>(self, y_true, pre_acts, acts):
+    N = y_true.shape[0]
+    dA = self.loss_function.derivative(y_true, acts[-1])
+
+    <span style="color: #cc7832;">for</span> i <span style="color: #cc7832;">in</span> reversed(range(len(self.weights))):
+        <span style="color: #cc7832;">if</span> i == len(self.weights) - 1:
+            dZ = dA * self.output_activation.derivative(pre_acts[i])
+        <span style="color: #cc7832;">else</span>:
+            dZ = dA * self.hidden_activation.derivative(pre_acts[i])
+
+        dW = acts[i].T @ dZ / N
+        dB = np.sum(dZ, axis=0) / N
+
+        self.weights[i] -= self.lr * dW
+        self.biases[i] -= self.lr * dB
+        dA = dZ @ self.weights[i].T</code></pre>
+
+      <h3 style="font-size: 1.1rem; margin-top: 24px; color: #38bdf8;">2. Generisk aktivering og tapsfunksjon</h3>
+      <p>Her ser vi at modellen faktisk er skrevet for å være generell, ikke bare “spam-klassifiserer”. Ved å pakke aktiveringsfunksjonen og tapfunksjonen inn i små containere kan samme nettverk bytte mellom ReLU, sigmoid, softmax og binary cross-entropy uten å måtte skrive helt ny kode hver gang.</p>
+      <pre><code><span style="color: #cc7832;">class</span> <span style="color: #ffc66d;">Activation</span>:
+    <span style="color: #cc7832;">def</span> <span style="color: #cc7832;">__init__</span>(self, func, derivative):
+        self.func = func
+        self.derivative = derivative
+
+
+<span style="color: #cc7832;">class</span> <span style="color: #ffc66d;">Loss</span>:
+    <span style="color: #cc7832;">def</span> <span style="color: #cc7832;">__init__</span>(self, func, derivative):
+        self.func = func
+        self.derivative = derivative
+
+
+relu_act = Activation(relu, relu_derivative)
+sigmoid_act = Activation(sigmoid, sigmoid_derivative)
+bce_loss = Loss(binary_cross_entropy, derivative_bce)</code></pre>
+
+      <h3 style="font-size: 1.1rem; margin-top: 24px; color: #38bdf8;">3. ReLU, sigmoid og binary cross-entropy i utility.py</h3>
+      <p>Dette er den lille, men veldig viktige funksjonsbiblioteket som gjør modellen operasjonell. ReLU brukes i det skjulte laget for å introdusere ikke-linearitet, sigmoid brukes i output-laget for sannsynlighetsberegning, og binary cross-entropy måler hvor langt prediksjonen er fra den riktige klassen.</p>
+      <pre><code><span style="color: #cc7832;">def</span> <span style="color: #ffc66d;">relu</span>(x):
+    <span style="color: #cc7832;">return</span> np.maximum(0, x)
+
+
+<span style="color: #cc7832;">def</span> <span style="color: #ffc66d;">sigmoid</span>(x):
+    <span style="color: #cc7832;">return</span> 1 / (1 + np.exp(-x))
+
+
+<span style="color: #cc7832;">def</span> <span style="color: #ffc66d;">binary_cross_entropy</span>(y_true, y_pred):
+    y_pred += 1e-15
+    <span style="color: #cc7832;">return</span> -np.mean(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))</code></pre>
+    </div>
+
     <div style="margin-top: 36px;">
       <a href="https://github.com/borgebj/Prosjekter/tree/main/python/AI/NN" target="_blank" style="display: inline-block; padding: 10px 18px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 999px; color: #38bdf8; text-decoration: none; font-weight: 600;">Se kildekode på GitHub ↗</a>
     </div>
 
     <div class="bottom-links">
       <a href="air-quality-app.html">IN2000 Luftkvalitet App</a>
-      <a href="filter-showcase.html">Bildefiltreringsdemo</a>
-      <a href="image-editing.html">Bildebehandlingsprosjekt</a>
+      <a href="filter-showcase.html">Bildebehandling</a>
       <a href="index.html">Hjemmeside</a>
     </div>
   </div>
