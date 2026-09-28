@@ -33,6 +33,10 @@ Henter en alpinkalender fra Wikipedia og lager en strukturert oversikt over arra
 python src/fetch_player_statistics.py
 ```
 Henter NBA-statistikk fra Wikipedia og genererer visualiseringer av poeng, assists og rebounds.
+```bash
+python src/wiki_race_challenge.py
+```
+Kjører et morsomt program: raskeste vei fra en link til en annen
 
 
 ## Hva prosjektet viser

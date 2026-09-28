@@ -94,7 +94,9 @@ def find_path(start: str, finish: str, calls: int) -> List[str]:
         Each article should have a direct link to the next article in the list.
     """
 
-    print("\nStarting wiki-race in ...")
+    print("\nStarting wiki-race ...")
+    print(f"From: {start}")
+    print(f"To:   {finish}")
     countdown(3)
     print("\n\n- Search has begun -")
 
