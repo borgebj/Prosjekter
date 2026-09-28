@@ -20,21 +20,21 @@ Koden er hovdsakelig hentet fra et studieprosjekt fra emnet IN4110, med fokus p�
 Installer verktøy:
 
 ```bash
-pip install -r requirements.txt
+pip install -r python/web_scraping/requirements.txt
 ```
 
-Eksemplene kan deretter kjøres individuelt fra `src/`, for eksempel:
+Eksemplene kan deretter kjøres individuelt fra `python/web_scraping/src/`, for eksempel:
 
 ```bash
-python src/time_planner.py
+python python/web_scraping/src/time_planner.py
 ```
 Henter en alpinkalender fra Wikipedia og lager en strukturert oversikt over arrangementene.  
 ```bash
-python src/fetch_player_statistics.py
+python python/web_scraping/src/fetch_player_statistics.py
 ```
 Henter NBA-statistikk fra Wikipedia og genererer visualiseringer av poeng, assists og rebounds.
 ```bash
-python src/wiki_race_challenge.py
+python python/web_scraping/src/wiki_race_challenge.py
 ```
 Kjører et morsomt program: raskeste vei fra en link til en annen
 

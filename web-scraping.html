@@ -1,271 +1,290 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <meta charset="UTF-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <title>Web scraping</title>
+ <link rel="stylesheet" href="common.css" />
+ <style>
+   .story-grid {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+     gap: 18px;
+     margin: 26px 0 28px;
+   }
 
-  <title>Web Scraping</title>
+   .story-panel {
+     background: linear-gradient(180deg, rgba(17,24,39,0.97), rgba(15,23,42,0.97));
+     border: 1px solid var(--border);
+     border-radius: 14px;
+     padding: 18px;
+     box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+     min-height: 160px;
+   }
 
-  <link rel="stylesheet" href="common.css" />
+   .story-panel .eyebrow {
+     display: inline-block;
+     margin-bottom: 10px;
+     font-size: 0.7rem;
+     letter-spacing: 0.08em;
+     text-transform: uppercase;
+     color: var(--accent);
+     font-weight: 700;
+   }
 
-  <style>
-    .story-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 18px;
-      margin: 24px 0 26px;
-    }
+   .story-panel h3 {
+     margin: 0 0 8px;
+     font-size: 1.08rem;
+   }
 
-    .story-panel {
-      background: linear-gradient(
-        180deg,
-        rgba(17, 24, 39, 0.97),
-        rgba(15, 23, 42, 0.97)
-      );
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 18px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-      min-height: 150px;
-    }
+   .story-panel p {
+     margin: 0;
+     color: var(--muted);
+     line-height: 1.6;
+   }
 
-    .story-panel .eyebrow {
-      display: inline-block;
-      margin-bottom: 10px;
-      font-size: 0.7rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--accent);
-      font-weight: 700;
-    }
+   .step-grid {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+     gap: 16px;
+     margin-top: 18px;
+   }
 
-    .story-panel h3 {
-      margin: 0 0 8px;
-      font-size: 1.08rem;
-    }
+   .step {
+     background: rgba(15, 23, 42, 0.9);
+     border: 1px solid var(--border);
+     border-radius: 12px;
+     padding: 18px 16px;
+   }
 
-    .story-panel p {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.6;
-    }
+   .step span {
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+     width: 28px;
+     height: 28px;
+     border-radius: 50%;
+     background: rgba(125, 211, 252, 0.12);
+     color: var(--accent);
+     font-weight: 700;
+     margin-bottom: 12px;
+   }
 
-    .result-box {
-      background: #0b1120;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px 18px;
-      margin-top: 14px;
-      color: var(--muted);
-      overflow-x: auto;
-    }
+   .step h3 {
+     margin: 0 0 8px;
+     font-size: 1.02rem;
+   }
 
-    .result-box pre {
-      border: none;
-      padding: 0;
-      margin: 0;
-      background: transparent;
-    }
+   .step p {
+     margin: 0;
+     color: var(--muted);
+     line-height: 1.6;
+   }
 
-    .code-heading {
-      font-size: 1.1rem;
-      margin-top: 24px;
-      color: var(--accent);
-    }
+   .project-list {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+     gap: 14px;
+     margin-top: 18px;
+   }
 
-    .github-link {
-      display: inline-block;
-      margin-top: 36px;
-      padding: 10px 18px;
-      background: rgba(56, 189, 248, 0.1);
-      border: 1px solid rgba(56, 189, 248, 0.4);
-      border-radius: 999px;
-      color: #38bdf8;
-      text-decoration: none;
-      font-weight: 600;
-    }
+   .project-list .item {
+     background: rgba(15, 23, 42, 0.78);
+     border: 1px solid var(--border);
+     border-radius: 10px;
+     padding: 14px 16px;
+     color: var(--muted);
+     line-height: 1.6;
+   }
 
-    .pipeline {
-      text-align: center;
-      font-size: 1.05rem;
-    }
+   .result-box {
+     background: #0b1120;
+     border: 1px solid var(--border);
+     border-radius: 10px;
+     padding: 16px 18px;
+     margin-top: 14px;
+     color: var(--muted);
+     overflow-x: auto;
+   }
 
-    @media (max-width: 600px) {
-      .story-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+   .result-box pre {
+     border: none;
+     padding: 0;
+     margin: 0;
+     background: transparent;
+   }
+
+   .code-heading {
+     font-size: 1.1rem;
+     margin-top: 26px;
+     color: var(--accent);
+   }
+
+   .github-link {
+     display: inline-block;
+     margin-top: 36px;
+     padding: 10px 18px;
+     background: rgba(56, 189, 248, 0.1);
+     border: 1px solid rgba(56, 189, 248, 0.4);
+     border-radius: 999px;
+     color: #38bdf8;
+     text-decoration: none;
+     font-weight: 600;
+   }
+
+   .gallery-frame {
+     margin-top: 18px;
+     padding: 12px;
+     border: 1px solid var(--border);
+     border-radius: 12px;
+     background: rgba(15, 23, 42, 0.8);
+   }
+
+   @media (max-width: 600px) {
+     .story-grid {
+       grid-template-columns: 1fr;
+     }
+   }
+ </style>
 </head>
-
 <body>
-  <div class="container">
+ <div class="container">
+   <div class="topbar">
+     <h1>Web scraping</h1>
+     <a href="index.html">Tilbake til hovedside</a>
+   </div>
 
-    <div class="topbar">
-      <h1>Web Scraping</h1>
-      <a href="index.html">Tilbake til hovedside</a>
-    </div>
+   <p>
+     Dette prosjektet er et praktisk eksempel på hvordan man kan bruke Python til å hente,
+     analysere og strukturere informasjon fra nettsider. Det starter med rå HTML og ender opp
+     med et mer nyttig datasett som kan brukes videre i analyse og visualisering.
+   </p>
 
-    <p>
-      Dette prosjektet er en liten samling av Python-eksperimenter rundt web scraping.
-      Fokus er på å hente data fra nettsider, analysere HTML, strukturere informasjon
-      og bruke dataene videre i små programmer.
-    </p>
+   <p>
+     I prosjektet kombineres flere teknikker: HTTP-forespørsler, HTML-parsing, URL-filtrering,
+     tabellutvinning og grafsøk. Samtidig får man en god følelse av hvordan dataflyten ser ut i
+     et typisk scraping-prosjekt – fra nettside til strukturert output.
+   </p>
 
-    <p>
-      Prosjektet kombinerer flere teknikker, fra enkel HTML-parsing og URL-filtrering
-      til databehandling med Pandas og en BFS-basert søkemotor for å finne korte veier
-      mellom Wikipedia-artikler.
-    </p>
+   <div class="story-grid">
+     <div class="story-panel">
+       <span class="eyebrow">Hva jeg bygde</span>
+       <h3>Scraping-utvikling i Python</h3>
+       <p>Et lite prosjekt som henter data fra Wikipedia, rydder opp i lenker og bygger videre på informasjonen.</p>
+     </div>
 
-    <div class="story-grid">
+     <div class="story-panel">
+       <span class="eyebrow">Hvordan</span>
+       <h3>Requests + BeautifulSoup</h3>
+       <p>Jeg bruker HTTP-klienter og parser HTML for å hente ut akkurat det som trengs fra nettsiden.</p>
+     </div>
 
-      <div class="story-panel">
-        <span class="eyebrow">Hva jeg bygde</span>
-        <h3>Flere scraping-eksperimenter</h3>
-        <p>
-          Programmer som henter og strukturerer informasjon fra Wikipedia og andre nettsider.
-        </p>
-      </div>
+     <div class="story-panel">
+       <span class="eyebrow">Interessant</span>
+       <h3>Fra nettside til graf</h3>
+       <p>Lenker blir behandlet som noder og kanter, og det gjør det mulig å løse problemer som korteste vei.</p>
+     </div>
 
-      <div class="story-panel">
-        <span class="eyebrow">Hvordan</span>
-        <h3>Requests + BeautifulSoup</h3>
-        <p>
-          HTTP-forespørsler kombineres med HTML-parsing for å hente ut akkurat informasjonen som trengs.
-        </p>
-      </div>
+     <div class="story-panel">
+       <span class="eyebrow">Resultat</span>
+       <h3>Data som blir brukt videre</h3>
+       <p>Resultatet blir både strukturert data og visuelle plott som gjør analysen mer intuitiv.</p>
+     </div>
+   </div>
 
-      <div class="story-panel">
-        <span class="eyebrow">Interessant</span>
-        <h3>Data blir strukturert</h3>
-        <p>
-          Rå HTML blir transformert til datoer, tabeller, URL-er og andre datastrukturer som kan behandles videre.
-        </p>
-      </div>
+   <div class="card">
+     <h2>Prosjektflyt</h2>
+     <div class="step-grid">
+       <div class="step">
+         <span>1</span>
+         <h3>Hent HTML</h3>
+         <p>Bruker requests for å få tilgang til siden og hente innholdet som skal parses.</p>
+       </div>
+       <div class="step">
+         <span>2</span>
+         <h3>Filtrer lenker</h3>
+         <p>Fjerner unødvendige URL-er og holder bare de som er relevante for prosjektet.</p>
+       </div>
+       <div class="step">
+         <span>3</span>
+         <h3>Strukturer data</h3>
+         <p>Parser tabeller, nøkler og felter i nyttige Python-datastrukturer.</p>
+       </div>
+       <div class="step">
+         <span>4</span>
+         <h3>Analyser og visualiser</h3>
+         <p>Bruker Pandas og Matplotlib for å gjøre dataene mer meningsfulle.</p>
+       </div>
+     </div>
+   </div>
 
-      <div class="story-panel">
-        <span class="eyebrow">Resultat</span>
-        <h3>Fra nettside til analyse</h3>
-        <p>
-          De innsamlede dataene brukes blant annet til tabeller, visualiseringer og søk mellom Wikipedia-artikler.
-        </p>
-      </div>
+   <div class="card">
+     <h2>Det prosjektet går ut på</h2>
+     <ul>
+       <li>Hente HTML fra Wikipedia og andre nettsider.</li>
+       <li>Rydde opp i URL-er og filtrere relevante lenker.</li>
+       <li>Parser tabeller og KPI-er til strukturerte data.</li>
+       <li>Lage grafer basert på innsamlede statistikker.</li>
+       <li>Bruke BFS for å finne korte veier mellom artikler.</li>
+       <li>Cachere HTTP-responser for å spare tid og unngå overflødige kall.</li>
+     </ul>
+   </div>
 
-    </div>
+   <div class="card">
+     <h2>Eksempelkode: hente og parse HTML</h2>
+     <p>
+       Første steg er å hente siden og la BeautifulSoup gjøre dokumentet lesbart for programmet.
+     </p>
+     <pre><code><span style="color: #cc7832;">def</span> <span style="color: #ffc66d;">get_html</span>(url: str, params=None, output=None) -&gt; str:
+   headers = {
+       <span style="color: #a5c261;">"User-Agent"</span>: <span style="color: #a5c261;">"BorgeWebScraper/1.0 (educational project)"</span>
+   }
 
-    <div class="card">
-      <h2>Hva prosjektet viser</h2>
+   response = requests.get(url, params=params, headers=headers, timeout=10)
+   response.raise_for_status()
+   <span style="color: #cc7832;">return</span> response.text</code></pre>
 
-      <ul>
-        <li>Web scraping og HTTP-forespørsler</li>
-        <li>HTML-parsing med BeautifulSoup</li>
-        <li>Filtrering og behandling av URL-er</li>
-        <li>Parsing og strukturering av datoer</li>
-        <li>Databehandling med Pandas</li>
-        <li>Visualisering med Matplotlib</li>
-        <li>BFS for å finne korteste vei mellom Wikipedia-artikler</li>
-        <li>Caching av HTTP-responser for å unngå unødvendige forespørsler</li>
-      </ul>
-    </div>
+     <pre><code>html = get_html(url)
+soup = BeautifulSoup(html, <span style="color: #a5c261;">"html.parser"</span>)
+links = soup.find_all(<span style="color: #a5c261;">"a"</span>, href=True)</code></pre>
+   </div>
 
-    <div class="card">
-      <h2>Eksempel: hente og parse en nettside</h2>
+   <div class="card">
+     <h2>Eksempelkode: filtrering av Wikipedia-lenker</h2>
+     <p>
+       Når vi samler nettsider som grafnoder, må vi filtrere bort alt som ikke er relevant for den
+       konkrete oppgaven. Her brukes regulære uttrykk for å identifisere kun gyldige Wikipedia-lenker.
+     </p>
+     <pre><code><span style="color: #cc7832;">for</span> link <span style="color: #cc7832;">in</span> soup.find_all(<span style="color: #a5c261;">"a"</span>, href=True):
+   href = link[<span style="color: #a5c261;">"href"</span>]
+   <span style="color: #cc7832;">if</span> re.match(pattern, href):
+       urls.append(href)</code></pre>
+   </div>
 
-      <p>
-        Første steg i scraping-prosessen er å hente HTML fra en URL.
-        Deretter kan BeautifulSoup brukes til å navigere i dokumentet og hente ut
-        de elementene man faktisk er interessert i.
-      </p>
+   <div class="card">
+     <h2>Wiki Race: korteste vei via BFS</h2>
+     <p>
+       Et av de mest interessante delene er wiki-race-løsningsmetoden. Her behandles artikler som noder og
+       lenker som kanter. BFS brukes fordi den finner korteste vei i antall hops når hver kant har lik kostnad.
+     </p>
+     <pre><code><span style="color: #cc7832;">def</span> <span style="color: #ffc66d;">find_path</span>(start, finish, calls):
+   queue = [(start, [start])]
+   visited = {start}
 
-      <pre><code><span style="color: #cc7832;">def</span> <span style="color: #ffc66d;">get_html</span>(url: str, params=None, output=None) -&gt; str:
-    headers = {
-        <span style="color: #a5c261;">"User-Agent"</span>:
-            <span style="color: #a5c261;">"BorgeWebScraper/1.0 (educational project)"</span>
-    }
+   <span style="color: #cc7832;">while</span> queue:
+       current, path = queue.pop(0)
+       <span style="color: #cc7832;">if</span> current == finish:
+           <span style="color: #cc7832;">return</span> path
 
-    response = requests.get(
-        url,
-        params=params,
-        headers=headers,
-        timeout=10
-    )
+       <span style="color: #cc7832;">for</span> url <span style="color: #cc7832;">in</span> get_links(current):
+           <span style="color: #cc7832;">if</span> url <span style="color: #cc7832;">not in</span> visited:
+               visited.add(url)
+               queue.append((url, path + [url]))</code></pre>
 
-    response.raise_for_status()
-
-    <span style="color: #cc7832;">return</span> response.text</code></pre>
-
-      <p>
-        Dette skiller selve HTTP-hentingen fra resten av scraping-logikken.
-        Resultatet er vanlig HTML som senere kan parses og behandles.
-      </p>
-    </div>
-
-    <div class="card">
-      <h2>Eksempel: filtrering av Wikipedia-lenker</h2>
-
-      <p>
-        Wiki Race-delen av prosjektet bruker lenker fra Wikipedia-artikler som en graf.
-        Hver artikkel fungerer som en node, mens lenkene mellom artiklene fungerer som kanter.
-      </p>
-
-      <p>
-        Før lenkene brukes må de filtreres slik at vi bare beholder relevante Wikipedia-URL-er.
-        Her brukes blant annet regulære uttrykk for å identifisere riktige lenker.
-      </p>
-
-      <pre><code><span style="color: #cc7832;">for</span> link <span style="color: #cc7832;">in</span> soup.find_all(<span style="color: #a5c261;">"a"</span>, href=True):
-    href = link[<span style="color: #a5c261;">"href"</span>]
-
-    <span style="color: #cc7832;">if</span> re.match(pattern, href):
-        urls.append(href)</code></pre>
-
-      <p>
-        På denne måten kan HTML-dokumentet behandles som en grafstruktur i stedet for
-        bare som tekst.
-      </p>
-    </div>
-
-    <div class="card">
-      <h2>Wiki Race: BFS på Wikipedia</h2>
-
-      <p>
-        Et av de mest interessante eksperimentene er en liten Wiki Race-søkemotor.
-        Programmet starter på én Wikipedia-artikkel og følger lenker mellom artiklene
-        til målet er funnet. Resultatet viser både veien som ble funnet og hvor lang tid
-        søket tok.
-      </p>
-
-      <p>
-        Dette løses med <strong>Breadth-First Search (BFS)</strong>. Fordi BFS undersøker
-        noder nivå for nivå, finner den den korteste veien i antall lenker når hver lenke
-        har samme kostnad.
-      </p>
-
-      <pre><code><span style="color: #cc7832;">def</span> <span style="color: #ffc66d;">find_path</span>(start, finish, calls):
-    queue = [(start, [start])]
-    visited = {start}
-
-    <span style="color: #cc7832;">while</span> queue:
-        current, path = queue.pop(0)
-
-        <span style="color: #cc7832;">if</span> current == finish:
-            <span style="color: #cc7832;">return</span> path
-
-        <span style="color: #cc7832;">for</span> url <span style="color: #cc7832;">in</span> get_links(current):
-            <span style="color: #cc7832;">if</span> url <span style="color: #cc7832;">not in</span> visited:
-                visited.add(url)
-                queue.append((url, path + [url]))</code></pre>
-
-      <div class="result-box">
-        <pre>Starting wiki-race ...
-
+     <div class="result-box">
+       <pre>Starting wiki-race ...
 From: https://en.wikipedia.org/wiki/Pentacora
 To:   https://en.wikipedia.org/wiki/Adolf_Hitler
-
-[3] [2] [1]
-
-- Search has begun -
 
 Shortest path:
 → Pentacora
@@ -273,139 +292,48 @@ Shortest path:
 → Cloning
 → Adolf Hitler
 
-Total time: 194.06s
-Time at start: 15:49:06
-Time at end:   15:52:20</pre>
-      </div>
-    </div>
+Total time: 194.06s</pre>
+     </div>
+   </div>
 
-    <div class="card">
-      <h2>Databehandling og visualisering</h2>
+   <div class="card">
+     <h2>Visualisering av analyse</h2>
+     <p>
+       Når dataene først er strukturert, kan de brukes i ekte analyse. I dette prosjektet visualiseres
+       toppliste-data fra NBA-spillere med Matplotlib for å gi et tydelig og brukbart resultat.
+     </p>
+     <div class="gallery-frame">
+       <img
+         src="python/web_scraping/NBA_Player_statistics/points.png"
+         alt="Visualisering av NBA-spilleres poeng"
+         style="display: block; width: min(100%, 760px); max-height: 560px; object-fit: contain; margin: 0 auto; border-radius: 12px; border: 1px solid var(--border); background: #f8fafc;"
+       />
+     </div>
+   </div>
 
-      <p>
-        Scraping trenger ikke stoppe når dataene er hentet. I NBA-eksempelet brukes
-        Wikipedia-tabeller som utgangspunkt for videre databehandling.
-      </p>
+   <div class="card">
+     <h2>Hvorfor dette er interessant</h2>
+     <p>
+       Dette er et godt eksempel på hvordan man kan bruke scraping ikke bare til å “hente tekst”, men til
+       å lage en liten data-pipeline. HTML blir oversatt til en struktur, strukturen blir analysert, og det
+       endelige resultatet kan brukes videre i modeller, rapporter eller visualiseringer.
+     </p>
+     <p>
+       Det som gjør prosjektet lærerikt er nettopp kombinasjonen av teknikker: nettverk, parsing, datahåndtering
+       og algoritmisk tenkning i samme lille kodebase.
+     </p>
+   </div>
 
-      <p>
-        Dataene organiseres med Pandas, og resultatene visualiseres med Matplotlib.
-        Dette viser en enkel pipeline fra nettside til ferdig analyse:
-      </p>
+   <a class="github-link" href="https://github.com/borgebj/Prosjekter/tree/main/python/web_scraping" target="_blank">
+     Se kildekode på GitHub ↗
+   </a>
 
-      <p class="pipeline">
-        <strong>Nettside → HTML → Parsing → Pandas → Visualisering</strong>
-      </p>
-
-      <img
-        src="python/web_scraping/NBA_Player_statistics/points.png"
-        alt="Visualisering av NBA-spilleres poeng"
-      />
-    </div>
-
-    <div class="card">
-      <h2>Caching av HTTP-forespørsler</h2>
-
-      <p>
-        Scraping kan fort føre til mange like HTTP-forespørsler under utvikling.
-        Derfor bruker prosjektet <code>requests-cache</code> for å lagre tidligere
-        responser lokalt.
-      </p>
-
-      <pre><code>requests_cache.install_cache(
-    <span style="color: #a5c261;">"cache"</span>,
-    expire_after=3600
-)</code></pre>
-
-      <p>
-        Når samme URL hentes igjen innenfor cache-perioden, kan responsen hentes
-        lokalt i stedet for å gjøre en ny nettverksforespørsel.
-      </p>
-
-      <p>
-        Dette gjør utvikling og testing raskere og reduserer samtidig unødvendig belastning
-        på nettsidene som blir hentet.
-      </p>
-    </div>
-
-    <div class="card">
-      <h2>Interessante kodesnutter</h2>
-
-      <h3 class="code-heading">
-        1. HTML-parsing med BeautifulSoup
-      </h3>
-
-      <p>
-        BeautifulSoup gjør HTML-dokumentet om til en struktur som kan navigeres.
-        Dermed kan man lete etter bestemte tagger, attributter og tekst.
-      </p>
-
-      <pre><code>html = get_html(url)
-soup = BeautifulSoup(html, <span style="color: #a5c261;">"html.parser"</span>)
-
-links = soup.find_all(<span style="color: #a5c261;">"a"</span>, href=True)</code></pre>
-
-      <h3 class="code-heading">
-        2. Gjøre HTML-data om til en datastruktur
-      </h3>
-
-      <p>
-        I stedet for å jobbe videre med rå HTML kan informasjonen trekkes ut og
-        lagres i Python-strukturer som er enklere å analysere.
-      </p>
-
-      <pre><code>rows = []
-
-<span style="color: #cc7832;">for</span> row <span style="color: #cc7832;">in</span> table.find_all(<span style="color: #a5c261;">"tr"</span>):
-    cells = row.find_all([
-        <span style="color: #a5c261;">"th"</span>,
-        <span style="color: #a5c261;">"td"</span>
-    ])
-
-    <span style="color: #cc7832;">if</span> cells:
-        rows.append([
-            cell.get_text(strip=True)
-            <span style="color: #cc7832;">for</span> cell <span style="color: #cc7832;">in</span> cells
-        ])</code></pre>
-
-      <h3 class="code-heading">
-        3. BFS og korteste vei
-      </h3>
-
-      <p>
-        Wiki Race viser hvordan scraping kan kombineres med en klassisk algoritme.
-        HTML-lenkene blir i praksis grafkanter, og BFS brukes til å finne en korteste vei.
-      </p>
-
-      <pre><code>queue = [(start, [start])]
-visited = {start}
-
-<span style="color: #cc7832;">while</span> queue:
-    current, path = queue.pop(0)
-
-    <span style="color: #cc7832;">if</span> current == finish:
-        <span style="color: #cc7832;">return</span> path
-
-    <span style="color: #cc7832;">for</span> neighbour <span style="color: #cc7832;">in</span> get_links(current):
-        <span style="color: #cc7832;">if</span> neighbour <span style="color: #cc7832;">not in</span> visited:
-            visited.add(neighbour)
-            queue.append((neighbour, path + [neighbour]))</code></pre>
-    </div>
-
-    <a
-      class="github-link"
-      href="https://github.com/borgebj/Prosjekter/tree/main/python/web_scraping"
-      target="_blank"
-    >
-      Se kildekode på GitHub ↗
-    </a>
-
-    <div class="bottom-links">
-      <a href="filter-showcase.html">Bildebehandling</a>
-      <a href="neural-network.html">Nevralt nettverk</a>
-      <a href="air-quality-app.html">IN2000 Luftkvalitet App</a>
-      <a href="index.html">Hjemmeside</a>
-    </div>
-
-  </div>
+   <div class="bottom-links">
+     <a href="filter-showcase.html">Bildebehandling</a>
+     <a href="neural-network.html">Nevralt nettverk</a>
+     <a href="air-quality-app.html">IN2000 Luftkvalitet App</a>
+     <a href="index.html">Hjemmeside</a>
+   </div>
+ </div>
 </body>
 </html>

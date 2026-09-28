@@ -191,11 +191,13 @@ def plot_best(best: Dict[str, List[Dict]], stat: str = "points") -> None:
                fontsize=4,
                title_fontsize=5)
 
-    stats_dir = "NBA_Player_statistics"
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    stats_dir = os.path.join(project_root, "NBA_Player_statistics")
     os.makedirs(stats_dir, exist_ok=True)
-    filename = stat+".png"
-    print(f"Creating {filename}")
-    plt.savefig(f"{stats_dir}/{filename}", dpi=300)
+    filename = stat + ".png"
+    output_path = os.path.join(stats_dir, filename)
+    print(f"Creating {output_path}")
+    plt.savefig(output_path, dpi=300)
 
 
 def get_teams(url: str) -> list:

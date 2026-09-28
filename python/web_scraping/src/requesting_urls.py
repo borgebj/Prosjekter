@@ -1,12 +1,17 @@
+import os
 from typing import Dict, Optional
 import time
 import requests
 import requests_cache
 
-# html cache
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+cache_path = os.path.join(project_root, "cache")
+
+# html cache: store next to the project, not in whichever directory runs Python from
 requests_cache.install_cache(
-    "cache",
-    expire_after=3600
+    cache_path,
+    expire_after=3600,
+    backend="sqlite"
 )
 
 def get_html(url: str, params: Optional[Dict] = None, output: Optional[str] = None) -> str:

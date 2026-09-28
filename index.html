@@ -24,7 +24,7 @@
     }
     .cards {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
       gap: 26px;
       margin-top: 42px;
     }
@@ -58,19 +58,34 @@
       color: var(--muted);
       line-height: 1.6;
     }
+    .folder .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+    .folder .language,
     .folder .tag {
       display: inline-block;
-      margin-top: 14px;
       padding: 5px 9px;
       border-radius: 999px;
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      line-height: 1.4;
+      width: fit-content;
+      max-width: 100%;
+      white-space: normal;
+      word-break: break-word;
+    }
+    .folder .language {
+      border: 1px solid rgba(34, 197, 94, 0.45);
+      color: #bbf7d0;
+      background: rgba(34, 197, 94, 0.12);
+    }
+    .folder .tag {
       border: 1px solid rgba(125, 211, 252, 0.4);
       color: var(--link);
       background: rgba(125, 211, 252, 0.08);
-      font-size: 0.72rem;
-      letter-spacing: 0.04em;
-      width: fit-content;
-      white-space: nowrap;
-      line-height: 1.3;
     }
     .bottom-links {
       margin-top: 54px;
@@ -106,21 +121,40 @@
         <div class="folder-icon">📱</div>
         <h2>Luftkvalitet i Norge</h2>
         <p>Android-app utviklet i IN2000 som viser sanntids luftkvalitet i Norge med MET-data og Google Maps.</p>
-        <span class="tag">Android • MVVM • MET API • Google Maps</span>
+        <div class="meta">
+          <span class="language">Kotlin</span>
+          <span class="tag">Android • MET • Kart</span>
+        </div>
       </a>
 
       <a class="folder" href="filter-showcase.html">
         <div class="folder-icon">📁</div>
         <h2>Bildebehandling</h2>
         <p>Eksperimenter med gråskala, sepia, pikselering, blur, ASCII-konvertering og visuelle transformasjoner.</p>
-        <span class="tag">Filtre • Bildeverktøy • Eksperimenter</span>
+        <div class="meta">
+          <span class="language">Python</span>
+          <span class="tag">Filtre • Bilder • Effekter</span>
+        </div>
       </a>
 
       <a class="folder" href="neural-network.html">
         <div class="folder-icon">🧠</div>
         <h2>Nevralt nettverk</h2>
         <p>Egendefinert feedforward-modell bygget fra bunnen for enkle klassifiserings- og læringseksperimenter.</p>
-        <span class="tag">Maskinlæring • Modeller • Analyse</span>
+        <div class="meta">
+          <span class="language">Python</span>
+          <span class="tag">Maskinlæring • Modeller • Analyse</span>
+        </div>
+      </a>
+
+      <a class="folder" href="web-scraping.html">
+        <div class="folder-icon">🕷️</div>
+        <h2>Web scraping</h2>
+        <p>Python-eksperimenter med HTML-parsing, URL-filtrering, Pandas og BFS for å finne veier mellom Wikipedia-artikler.</p>
+        <div class="meta">
+          <span class="language">Python</span>
+          <span class="tag">Scraping • Wikipedia • Data</span>
+        </div>
       </a>
     </div>
 
@@ -128,6 +162,7 @@
       <a class="link" href="air-quality-app.html">IN2000 Luftkvalitet App</a>
       <a class="link" href="filter-showcase.html">Bildebehandling</a>
       <a class="link" href="neural-network.html">Prosjekt om nevralt nettverk</a>
+      <a class="link" href="web-scraping.html">Web scraping</a>
     </div>
   </div>
 </body>

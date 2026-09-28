@@ -20,3 +20,4 @@ python/AI/NN/scaler_params.npz
 out
 *.sqlite
 *.pt
+NBA_Player_statistics
