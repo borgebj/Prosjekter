@@ -9,7 +9,7 @@ Dette prosjektet er en liten samling av bildebehandlings-eksperimenter skrevet i
 - **Pixelation**
 - **Blur** (pågående arbeid)
 - **ASCII-style** image rendering
-- **Basic image IO and display utilities**
+- **Basic bilde IO og display verktøy**
 
 ## Verktøy
 
@@ -17,13 +17,16 @@ Dette prosjektet er en liten samling av bildebehandlings-eksperimenter skrevet i
 
 
 ## Eksempel på bruk
-
-Fra `python`-mappen, installer avhengigheter og kjør demoen:
+Installer verktøy:
 
 ```bash
 pip install -r requirements.txt
-cd image_editing/filters
-python main.py
+```
+
+Kan så kjøre koden fra filters-mappen
+
+```bash
+python filters/main.py
 ```
 
 Prosjektet er bygd rundt en gjenbrukbar filter‑pipeline. Hvert filter kan velges og anvendes på et bilde, og koden er utformet for å gjøre eksperimentering enkel.

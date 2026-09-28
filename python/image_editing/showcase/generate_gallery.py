@@ -4,14 +4,14 @@ import numpy as np
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-FILTERS_DIR = ROOT / 'image_editing' / 'filters'
-for path in (str(ROOT), str(FILTERS_DIR)):
-    if path not in sys.path:
-        sys.path.insert(0, path)
+FILTERS_DIR = ROOT / "filters"
 
-from image_editing.filters import ascii, blur, greyscale, pixelator, sepia
+if str(FILTERS_DIR) not in sys.path:
+    sys.path.insert(0, str(FILTERS_DIR))
 
-SOURCE = ROOT / 'image_editing' / 'images' / 'mexico.jpg'
+import ascii, blur, greyscale, pixelator, sepia
+
+SOURCE = ROOT / "images" / "mexico.jpg"
 OUTPUT_DIR = Path(__file__).resolve().parent / 'generated'
 OUTPUT_DIR.mkdir(exist_ok=True)
 

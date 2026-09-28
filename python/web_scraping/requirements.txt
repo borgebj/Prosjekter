@@ -1,0 +1,6 @@
+requests
+requests-cache
+beautifulsoup4
+pandas
+matplotlib
+tabulate

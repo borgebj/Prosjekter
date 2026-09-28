@@ -1,4 +1,10 @@
 from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parent.parent
+
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 import matplotlib
 matplotlib.use("Agg")
@@ -7,8 +13,7 @@ import numpy as np
 
 from neural_network import NeuralNet
 
-ROOT = Path(__file__).resolve().parent
-OUTPUT_DIR = ROOT / "generated"
+OUTPUT_DIR = Path(__file__).resolve().parent / "generated"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 EXAMPLES = np.array([

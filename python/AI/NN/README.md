@@ -55,7 +55,19 @@ print_prediction(X_test, y_test, probs, classes)
 ```python
 n.save("spam_detector.pt")
 ```
-6. Laast inn modellen:
+6. Last inn modellen:
 ```python
 nn = NeuralNet.load("spam_detector.pt")
+```
+
+## Eksempel på bruk
+
+Installer avhengigheter:
+
+```bash
+pip install -r requirements.txt
+```
+Eksempelet kan deretter kjøres:
+```bash
+python spamtest.py
 ```

@@ -1,11 +1,12 @@
 import images
 import image_io
-from python.image_editing.filters import utility
+import utility
+from pathlib import Path
 
 
 def main():
     file = "mexico"
-    filename = f"../images/{file}.jpg"
+    filename = Path(__file__).resolve().parent.parent / "images" / f"{file}.jpg"
     filter_name = "blur"  # "pixelator", "ascii", "blur"
     implementation = "numpy"  # "python", "numpy"
 

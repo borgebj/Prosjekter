@@ -18,3 +18,5 @@ zip
 python/AI/NN/spamtest_output.txt
 python/AI/NN/scaler_params.npz
 out
+*.sqlite
+*.pt

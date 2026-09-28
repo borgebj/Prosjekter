@@ -21,7 +21,7 @@ En liten nettside er laget for å vise noen av disse prosjektene på en rask og 
 
 - [Neural Network](python/AI/NN/README.md) -- et nevralt nettverk bygget fra bunnen av
 - [Bildebehandling](python/image_editing/README.md) -- filtre, pixelmanipulering og visuelle effekter
-- [Visuelt showcase](python/showcase/README.md) -- en rask visuell demo av resultatene
+- [Visuelt showcase](python/image_editing/showcase/README.md) -- en rask visuell demo av resultatene
 - [Java-eksperimenter](java) -- mindre prøver og små utviklingsøkter
 
 ## Kom i gang
