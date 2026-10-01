@@ -4,29 +4,23 @@
 
 Bygge en liten **språkmodell som kan lære mønstre i tekst og generere sin egen tekst**.
 
-TODO  
-* Bli mer kjent med **RNN-er, språkmodeller og praktisk bruk av relevante biblioteker og verktøy** som brukes i AI/ML-utvikling. Jeg trenger derfor ikke implementere alt fra scratch. Poenget er å forstå de viktigste konseptene, samtidig som jeg får erfaring med hvordan slike modeller faktisk bygges og brukes i praksis.  
-    
+* Bli mer kjent med **RNN-er, språkmodeller og praktisk bruk av relevante biblioteker og verktøy** som brukes i AI/ML-utvikling. Jeg trenger derfor ikke implementere alt fra scratch. Poenget er å forstå de viktigste konseptene, samtidig som jeg får erfaring med hvordan slike modeller faktisk bygges og brukes i praksis.
+* Bygge prosjektet gradvis, i stedet for å lage hele modellen på én gang. Totalt deler jeg det opp i **7 blokker**, hvor hver blokk introduserer én viktig del av systemet. Hver blokk skal inneholde et lite eksperiment eller en undersøkelse, slik at jeg ikke bare implementerer komponenten, men også forstår hvorfor og hvordan den brukes.
 
-* Bygge prosjektet gradvis, i stedet for å lage hele modellen på én gang. Totalt deler jeg det opp i **7 blokker**, hvor hver blokk introduserer én viktig del av systemet. Etter hvert skal blokkene kunne kobles sammen til en fungerende språkmodell.
-
-
-Prosjektet blir oppdelt i blokker:
+Prosjektet blir omtrent:
 
 ```text
 Tekst
  ↓
-Tokenisering
+Tekstbehandling
  ↓
 Embeddings
  ↓
 RNN
  ↓
-Output-lag
+Språkmodell
  ↓
-Softmax
- ↓
-Neste-token-prediksjon
+Trening
  ↓
 Tekstgenerering
 ```
@@ -35,68 +29,69 @@ Tekstgenerering
 
 ## Blokk 1 – Tekstbehandling
 
-**Mål:** Finne ut hvordan jeg gjør vanlig tekst om til data som et nevralt nettverk kan bruke.
+**Formål:** Forstå hvordan rå tekst gjøres om til data som kan brukes av et nevralt nettverk, og hvordan ulike tokeniseringsvalg påvirker dette.
 
-Utforske tokenisering og vocabulary, og bli kjent med relevante verktøy for dette.
+Utforske:
 
-Eksempel:
+* tokenisering og vocabulary
+* character-level vs. word-level
+* input/target-sekvenser for next-token prediction
+* relevante verktøy for tekstbehandling
 
-```text
-"hello"
-```
+### Gjennomført
 
-kan bli:
-
-```text
-h → 0
-e → 1
-l → 2
-o → 3
-```
-
-og dermed:
+Jeg har laget en liten, gjenbrukbar pipeline for:
 
 ```text
-[0, 1, 2, 2, 3]
+Tekst → Tokenisering → Vocabulary → Token-IDer → Input/target-sekvenser
 ```
 
-Må også lage input/target-sekvenser som kan brukes til å lære modellen å forutsi neste tegn/token.
+Jeg har sammenlignet character-level og word-level tokenisering, blant annet med tanke på vocabulary-størrelse og sekvenslengde. Jeg har også undersøkt hvordan `sequence_length` påvirker treningssekvensene.
 
-Mulig start:  **character-level**, og så **word-level** senere.
+For word-level tokenisering har jeg også testet lowercasing og fjerning av punctuation.
+
+### Gjenstår
+
+* undersøke stemming og lemmatization
+* undersøke stopword removal
+* undersøke `<UNK>` og andre special tokens som `<PAD>`, `<BOS>` og `<EOS>`
+* undersøke subword-tokenisering og relevante verktøy
+
+**Sluttresultat:** En gjenbrukbar pipeline som gjør tekst om til ferdige input/target-sekvenser for RNN-modellen.
 
 ---
 
 ## Blokk 2 – Embeddings
 
-**Mål:** Forstå hvordan tokens kan representeres som vektorer i stedet for bare tall.
+**Mål:** Utforske hvordan tokens kan representeres som vektorer, og hvorfor dette er nyttig.
 
-Et token som:
+Undersøke ulike måter å representere tekst på, for eksempel:
 
-```text
-h → 0
-```
+* one-hot
+* TF-IDF
+* embeddings
 
-skal etter hvert representeres av noe mer som:
+Visualisere representasjonene, for eksempel med **PCA**, for å undersøke om tokens med lignende betydning eller bruk ender opp nær hverandre.
 
-```text
-h → [0.21, -0.43, 0.72, ...]
-```
+Deretter lage et enkelt embedding-lag og undersøke hvordan embeddings håndteres i praktiske ML-biblioteker.
 
-Finne ut mer av hva embeddings er, hvorfor de brukes, og hvordan et embedding-lag fungerer.
-
-Først lage en enkel embedding selv for å forstå konseptet, og deretter utforske hvordan embeddings håndteres i praktiske ML-biblioteker.
-
-Blir koblingen mellom tekstbehandlingen og selve nevrale nettverket.
+**Sluttresultat:** En bedre forståelse av hvordan tekst går fra token IDs til numeriske vektorer som kan brukes av RNN-en.
 
 ---
 
 ## Blokk 3 – RNN
 
-**Mål:** Forstå og bruke et rekurrent nevralt nettverk og hvordan det kan behandle sekvenser.
+**Mål:** Forstå hvordan et rekurrent nevralt nettverk kan behandle sekvenser og ta vare på informasjon fra tidligere tidssteg.
 
-En naturlig utvidelse av den allerede lagde `NN` prosjektet, skal så bygge videre på det.
+Bygge videre på forståelsen fra `NN`-prosjektet og undersøke:
 
-Forskjellen er at RNN-en tar med seg en **hidden state** fra forrige steg:
+* hidden state
+* recurrent weights
+* tidssteg
+* hvordan informasjon føres videre gjennom en sekvens
+* Backpropagation Through Time (BPTT)
+
+Starte med en **svært enkel numerisk RNN**, uten tekst eller embeddings, slik at selve mekanismen kan forstås isolert.
 
 ```text
 x₁ → h₁
@@ -104,44 +99,37 @@ x₁ → h₁
 x₂ → h₂
       ↓
 x₃ → h₃
-      ↓
-x₄ → h₄
 ```
 
-Finne ut av:
-* hidden state
-* recurrent weights
-* hvordan informasjon føres videre mellom tidssteg
-* hvordan sekvenser behandles
-* Backpropagation Through Time (BPTT)
-* 
+Jeg kan også visualisere hidden states for å undersøke hvordan representasjonen endrer seg gjennom sekvensen.
+
+**Sluttresultat:** En fungerende og forstått RNN som kan behandle en sekvens.
+
 ---
+## Blokk 4A – Intent classification
 
-## Blokk 4 – Språkmodell
+**Mål:** Bruke RNN-en til en annen NLP-oppgave enn språkmodellering:
+klassifisering av tekst i forhåndsdefinerte intents.
 
-**Mål:** Gjøre RNN-en om til en faktisk språkmodell.
+Bygge:
 
-I stedet for å bare produsere én verdi, skal modellen forutsi sannsynligheten for hvert mulig neste token.
+Tekst
+ ↓
+Tokenisering
+ ↓
+Embedding
+ ↓
+RNN
+ ↓
+Classification layer
+ ↓
+Intent
 
-For eksempel:
+## Blokk 4B – Språkmodell
 
-```text
-Input: "hel"
+**Mål:** Koble RNN-en til tekst og gjøre den om til en faktisk språkmodell.
 
-l → 0.82
-o → 0.05
-p → 0.02
-...
-```
-
-Her introduseres:
-
-* output-lag
-* softmax
-* cross-entropy loss
-* next-token prediction
-
-Dette blir omtrent:
+Bygge:
 
 ```text
 Token IDs
@@ -154,20 +142,27 @@ Output-lag
  ↓
 Softmax
  ↓
-Sannsynlighet for neste token
+Neste-token-prediksjon
 ```
 
-Så langt kan blokkene brukes hver for seg, men de kan også kobles sammen til en helhetlig modell.
+Introdusere:
+
+* output-lag
+* softmax
+* cross-entropy loss
+* next-token prediction
+
+Undersøke hvordan modellens sannsynligheter endrer seg når den får mer kontekst.
+
+**Sluttresultat:** En språkmodell som kan ta inn en sekvens og gi sannsynligheter for neste token.
 
 ---
 
 ## Blokk 5 – Trening
 
-**Mål:** Trene hele modellen på faktisk tekst.
+**Mål:** Trene hele modellen på faktisk tekst og undersøke hvordan RNN-en lærer.
 
-Her skal jeg koble sammen komponentene og lage en ordentlig treningspipeline.
-
-Jeg må blant annet håndtere:
+Sette sammen:
 
 ```text
 tekst
@@ -176,61 +171,77 @@ input/target-sekvenser
  ↓
 forward pass
  ↓
+prediction
+ ↓
 loss
  ↓
-backpropagation / BPTT
+BPTT
  ↓
 gradient descent
  ↓
 oppdaterte parametere
 ```
 
-Vil bli kjent med hvordan man faktisk trener modeller i praksis, f.eks gjennom relevante biblioteker for datasett, trening, validering og modell-lagring..
+Eksperimentere med blant annet:
+
+* learning rate
+* sequence length
+* antall hidden units
+* trenings- og valideringsdata
+* loss over tid
+
+Undersøke problemer som **vanishing/exploding gradients** og hvordan de påvirker treningen.
+
+Bli kjent med relevante biblioteker for trening, datasett, validering og lagring av modeller.
+
+**Sluttresultat:** En faktisk trent RNN-basert språkmodell.
 
 ---
 
 ## Blokk 6 – Tekstgenerering
 
-**Mål:** Bruke den trente modellen til å faktisk generere tekst.
+**Mål:** Bruke den trente modellen til å generere tekst.
 
-Skal så kunne gi modellen en starttekst:
+Gi modellen en startsekvens:
 
 ```text
 "The cat"
 ```
 
-og la den fortsette:
+og la den predikere ett token om gangen:
 
 ```text
-"The cat s"
+"The cat"
 "The cat sat"
 "The cat sat on"
 "The cat sat on the"
 ...
 ```
 
-Modellen predikerer ett token om gangen, og det nye tokenet brukes videre som input.
-
-Her kan jeg også eksperimentere med ting som:
+Eksperimentere med:
 
 * random sampling
 * temperature
-* hvor lange sekvenser modellen skal generere
-* forskjellige prompts
+* ulike prompts
+* genereringslengde
 
-Jeg vil også utforske hvordan tekstgenerering og inference vanligvis håndteres i praktiske ML-verktøy.
+Undersøke hvordan ulike samplingstrategier påvirker resultatet.
 
-Dette er punktet hvor prosjektet faktisk begynner å føles som en liten språkmodell.
+**Sluttresultat:** En liten språkmodell som faktisk kan generere tekst.
 
 ---
 
 ## Blokk 7 – Videreutvikling
 
-**Mål:** Utforske hvor langt jeg kan ta modellen videre.
+**Mål:** Utforske RNN-ens begrensninger og forstå hvorfor nyere arkitekturer ble utviklet.
 
-Når den vanlige RNN-en fungerer, kan jeg undersøke hvilke problemer den har, spesielt med lange sekvenser og vanishing/exploding gradients.
+Undersøke problemer med vanlige RNN-er, spesielt:
 
-Derfra kan jeg gå videre til:
+* lange sekvenser
+* vanishing/exploding gradients
+* begrenset memory
+
+Deretter utforske utviklingen:
 
 ```text
 RNN
@@ -242,26 +253,4 @@ GRU
 Transformer
 ```
 
-Jeg trenger ikke nødvendigvis implementere alt. Poenget er å bruke RNN-en som utgangspunkt for å forstå **hvorfor LSTM, GRU og senere Transformer-arkitekturer ble utviklet**, og samtidig få erfaring med hvordan disse modellene brukes med moderne biblioteker og verktøy.
-
----
-
-## Sluttmålet
-
-Til slutt vil jeg ha bygget opp en liten språkmodell steg for steg:
-
-```text
-Tekstbehandling
-      ↓
-  Embeddings
-      ↓
-      RNN
-      ↓
-  Språkmodell
-      ↓
-    Trening
-      ↓
-Tekstgenerering
-```
-
-Det viktigste er ikke å lage en stor eller imponerende LLM. Målet er å bli **familiar med RNN-er og språkmodeller gjennom praktisk arbeid**, forstå de viktigste konseptene underveis, og samtidig bli kjent med verktøyene og bibliotekene som faktisk brukes til å utvikle slike systemer.
+Jeg
