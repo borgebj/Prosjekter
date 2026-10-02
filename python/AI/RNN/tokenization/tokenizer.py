@@ -20,7 +20,7 @@ def word_tokenize(text):
 
 def add_special_tokens(tokens):
     """Adds beginning and enf of sequence tokens (BOS and EOS)"""
-    return ["<BOS>"] + tokens + ["<EOS"]
+    return ["<BOS>"] + tokens + ["<EOS>"]
 
 
 # =====================================

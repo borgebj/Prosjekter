@@ -127,7 +127,7 @@ class NeuralNet:
             # produces the predictions
             activations, pre_activations = self.forward(X)
 
-            # Loss
+            # Loss (optional)
             # measures how wrong predictions are
             prediction = activations[-1]
             loss = self.mse(prediction, y)

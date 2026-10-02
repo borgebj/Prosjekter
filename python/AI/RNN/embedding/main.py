@@ -32,6 +32,7 @@ mat = one_hot_encode(token_to_id["mat"], vocab_size)
 sat = one_hot_encode(token_to_id["sat"], vocab_size)
 
 print("\n" + "="*10)
+print("Dot products: 0 means different, 1 means same")
 print("cat · mat:", dot_product(cat, mat))
 print("mat · sat:", dot_product(mat, sat))
 print("mat · mat:", dot_product(mat, mat))
