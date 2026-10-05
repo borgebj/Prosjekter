@@ -132,7 +132,7 @@
       <ul>
         <li>Filterarbeidet ligger i samme pipeline og er lett å gjenbruke.</li>
         <li>Eksperimentene inkluderer gråskala, sepia, pikselering, blur og ASCII-rendering.</li>
-        <li>Det mest interessante felet er ikke “hva som ser bra ut”, men “hvor raskt og elegant koden faktisk gjør beregningen.”</li>
+        <li>Viser ikke bare det visuelle som “hva som ser bra ut”, men “hvor raskt og elegant koden faktisk gjør beregningen.”</li>
       </ul>
     </div>
 
@@ -197,7 +197,8 @@
     <span style="color: #cc7832;">return</span> gray_image.astype(np.uint8)</code></pre>
 
       <h3 style="font-size: 1.05rem; margin: 18px 0 8px; color: #38bdf8;">2. Sepia: lineær fargekombinasjon</h3>
-      <p>Sepia vises som en liten color-matrix-operasjon: hver pixel multipliseres med en fargetransform og blir dermed varmere og mer “filmisk”.</p>
+      <p>Sepia vises som en liten color-matrix-operasjon: hver pixel multipliseres med en fargetransform og blir dermed varmere og mer “filmisk”. <br>
+        "k" bestemmer styrken til sepia-filteret, og med (1 - k) justerer vi prosentvis (f.eks. (1 - 0.9) = 10%)</p>
       <pre><code><span style="color: #cc7832;">def</span> <span style="color: #ffc66d;">numpy_sepia</span>(image: np.ndarray, k: float = 1.0) -&gt; np.ndarray:
     sepia_matrix = np.array([
         [0.393, 0.769, 0.189],
@@ -212,7 +213,7 @@
     <span style="color: #cc7832;">return</span> sepia_image.astype(np.uint8)</code></pre>
 
       <h3 style="font-size: 1.05rem; margin: 18px 0 8px; color: #38bdf8;">3. Blur: gaussisk kernel over nabopiksler</h3>
-      <p>Dette er hvor det blir ekstra interessant. En gaussisk blur bruker en liten lokal kernel som “veier” nabopiksler, og det er et klassisk eksempel på en operation som er både visuell og beregningsmessig tung.</p>
+      <p>Et ekstra interessant tillegg til filteret er bruk av en gaussisk kjerne. En gaussisk blur bruker en liten lokal kernel som “veier” nabopiksler, og det er et klassisk eksempel på en operation som er både visuell og beregningsmessig tung.</p>
       <pre><code><span style="color: #cc7832;">def</span> <span style="color: #ffc66d;">gaussian_kernel</span>(kernel_size, sigma=1.0) -&gt; np.ndarray:
     radius = kernel_size // 2
     kernel = np.zeros((kernel_size, kernel_size))
@@ -227,7 +228,9 @@
 
       <div class="notes" style="margin-top: 28px;">
         <h2>Python vs. NumPy: hvorfor dette faktisk betyr noe</h2>
-        <p style="margin: 0;">Den mest interessante delen av prosjektet er ikke filteret i seg selv, men hvordan det kan implementeres på to nivåer. En ren Python-løsning itererer over hvert piksel og hver nabo i en løkke, mens NumPy bruker vektorisering og opererer på hele arrays på én gang. Det gir samme visuelle resultat, men med en stor forskjell i hastighet og kodekompleksitet.</p>
+        <p style="margin: 0;">Den mest interessante delen av prosjektet er ikke filteret i seg selv, men hvordan det kan implementeres på to nivåer.
+          En ren Python-løsning itererer over hvert piksel og hver nabo i en løkke, mens NumPy bruker vektorisering og opererer på hele arrays på én gang. Det gir samme visuelle resultat, men med en stor forskjell i hastighet og kodekompleksitet.<br>
+        Ved å implementere en ren python versjon først, øker det forståelsen av oppgaven og bidrar til bedre læring.</p>
       </div>
     </div>
 

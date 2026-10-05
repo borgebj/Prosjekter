@@ -78,12 +78,12 @@
       <div class="story-panel">
         <span class="eyebrow">Hva jeg bygde</span>
         <h3>Et nevralt nettverk fra bunnen av</h3>
-        <p>En liten klassifiseringsmodell som lærer å skille mellom mistenkelige og normale meldinger.</p>
+        <p>En liten klassifiseringsmodell som lærer å skille mellom mistenkelige og normale eposter.</p>
       </div>
       <div class="story-panel">
         <span class="eyebrow">Hvordan</span>
         <h3>Forward pass og backpropagation</h3>
-        <p>Jeg implementerte selve læringsflyten i Python uten rammeverk, så alt blir transparent.</p>
+        <p>Alt lagd fra bunnen uten rammeverk som bl.a. Pytorch for bedre forståelse.</p>
       </div>
       <div class="story-panel">
         <span class="eyebrow">Interessant</span>
@@ -99,7 +99,8 @@
 
     <div class="card">
       <h2>Modelloversikt</h2>
-      <p>Dette mini-prosjektet bruker en enkel struktur for et nevralt nettverk: tre input-funksjoner, et skjult lag og én outputnode som forutsier om input ser ut som søppelpost.</p>
+        <p>Dette mini-prosjektet bruker en enkel struktur for et nevralt nettverk: tre input-funksjoner, et skjult lag og én outputnode som forutsier om input ser ut som spam.</p>
+        <p>Output er ligger på rekken <0.0, 1.0>, hvor 0.0 indikerer 0% sannsynlighet for spam, og 1.0 indikerer 100%  sannsynlighet for spam.</p>
       <img src="python/AI/NN/showcase/generated/model_architecture.png" alt="Diagram over enkel nevralt nettverksarkitektur" style="display:block; width:79.2%; margin: 12px auto 0; border-radius: 12px; border:1px solid #334155;" />
     </div>
 
@@ -115,13 +116,13 @@
 
     <div class="card">
       <h2>Hvordan data representeres</h2>
-      <p>Modellen bruker et lite syntetisk datasett bygget rundt tre enkle funksjoner:</p>
+      <p>Modellen bruker et lite syntetisk datasett bygget rundt tre enkle trekk (features):</p>
       <ul>
-        <li><strong>free</strong> — hvor mange ganger ordet “free” vises</li>
-        <li><strong>win</strong> — hvor mange ganger ordet “win” vises</li>
-        <li><strong>offer</strong> — hvor mange ganger ordet “offer” vises</li>
+        <li><strong>free</strong> -- hvor mange ganger ordet “free” vises</li>
+        <li><strong>win</strong> -- hvor mange ganger ordet “win” vises</li>
+        <li><strong>offer</strong>-- hvor mange ganger ordet “offer” vises</li>
       </ul>
-      <p>Tenk deg en e-post som:</p>
+      <p>Ta f.eks. en kort e-post som:</p>
       <blockquote style="margin: 16px 0; padding: 14px 18px; background: #0b1120; border-left: 4px solid #38bdf8; color: #e2e8f0; border-radius: 10px;">
         “Congratulations! You have won a free offer today. Claim your prize now!”
       </blockquote>
@@ -132,18 +133,19 @@
         <li>offer = 1</li>
       </ul>
       <p>Dette konverteres deretter til en funksjonsvektor: <strong>[1, 1, 1]</strong>.</p>
-      <p>Det nevrale nettverket prosesserer dette inputet og gir en sannsynlighet, for eksempel rundt <strong>85–90 %</strong> sannsynlighet for søppelpost for en melding med flere mistenkelige signaler.</p>
+      <p>Det nevrale nettverket prosesserer dette inputet og gir en sannsynlighet, for eksempel rundt <strong>85–90 %</strong> sannsynlighet for spam for en melding med flere mistenkelige signaler.</p>
     </div>
 
     <div class="card">
       <h2>Eksempel på prediksjon</h2>
-      <p>Denne visualiseringen viser noen representative eksempler modellen blir bedt om å klassifisere. Jo mer mistenkelig kombinasjonen av ord er, desto høyere blir sannsynligheten for søppelpost. Det er en rask sanity check for å se om nettverket oppfører seg på en fornuftig måte for enkle eksempeldata.</p>
-      <img src="python/AI/NN/showcase/generated/sample_predictions.png" alt="Diagram for eksempel på prediksjon for søppelpost" style="display:block; width:79.2%; margin: 12px auto 0; border-radius: 12px; border:1px solid #334155; background: #f8fafc;" />
+      <p>Denne visualiseringen viser noen representative eksempler modellen blir bedt om å klassifisere. Jo mer mistenkelig kombinasjonen av ord er, desto høyere blir sannsynligheten for spam. Det er en rask sanity check for å se om nettverket oppfører seg på en fornuftig måte for enkle eksempeldata.</p>
+      <img src="python/AI/NN/showcase/generated/sample_predictions.png" alt="Diagram for eksempel på prediksjon for spam" style="display:block; width:79.2%; margin: 12px auto 0; border-radius: 12px; border:1px solid #334155; background: #f8fafc;" />
+        <p><i></u>NB! Data fra diagram er nesten hovedsakelig "dummy data" / syntetisk data, så resultat kan være langt ifra det som er realistisk fra en slik modell.</i></p>
     </div>
 
     <div class="card">
       <h2>Interessante kodesnutter</h2>
-      <p>Dette prosjektet er spesielt godt for å demonstrere hvordan et nevralt nettverk faktisk fungerer, uten å skjule alt bak et rammeverk. Her er tre sentrale deler av koden som viser den tekniske kjernen.</p>
+      <p>Dette prosjektet er spesielt godt for å demonstrere hvordan et nevralt nettverk faktisk fungerer, uten å skjule alt bak et rammeverk med ferdilaget og forenklede funksjoner. Her er tre sentrale deler av koden som viser den tekniske kjernen.</p>
 
       <h3 style="font-size: 1.1rem; margin-top: 18px; color: #38bdf8;">1. Forward pass og backpropagation</h3>
       <p>Dette er selve læringsmekanismen: først beregner nettverket en prediksjon, så går det bakover gjennom lagene for å finne feilen, og oppdaterer vektene. Koden viser hvordan hver neuron får en forutsetning (<code>Z</code>), en aktivering (<code>A</code>) og til slutt en feildifferensial som brukes til å justere vektene.</p>
@@ -155,7 +157,7 @@
         Z = activations[-1] @ self.weights[i] + self.biases[i]
         pre_activations.append(Z)
 
-        <span style="color: #cc7832;">if</span> i == len(self.weights) - 1:
+        <pan style="color: #cc7832;">if</pan> i == len(self.weights) - 1:
             A = self.output_activation.func(Z)
         <span style="color: #cc7832;">else</span>:
             A = self.hidden_activation.func(Z)
