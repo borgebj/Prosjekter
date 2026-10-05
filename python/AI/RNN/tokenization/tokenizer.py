@@ -15,20 +15,26 @@ def word_tokenize(text):
     return text.split()
 
 
+
+
+
 # =====================================
 # Special tokens
 
 def add_special_tokens(tokens):
     """Adds beginning and enf of sequence tokens (BOS and EOS)"""
-    return ["<BOS>"] + tokens + ["<EOS"]
+    return ["<BOS>"] + tokens + ["<EOS>"]
 
 
 # =====================================
 # Vocabulary
 
-def create_vocabulary(tokens):
+def create_vocabulary(tokens, include_unk=True):
     """Creates a vocabulary from tokens, making encoding and decodingpossible"""
-    vocab = ["<UNK>"] + sorted(set(tokens))
+    vocab = sorted(set(tokens))
+
+    if include_unk:
+        vocab = ["<UNK>"] + vocab
 
     # encoding
     token_to_id = {
