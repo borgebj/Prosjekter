@@ -269,8 +269,8 @@ trainer = EmbeddingTrainer(
     different_pairs
 )
 
-learning_rate = 0.01
-epochs = 100
+learning_rate = 0.05
+epochs = 10
 
 print(f"\nInitial loss: {trainer.calculate_loss():.4f}")
 print("\nTraining:")

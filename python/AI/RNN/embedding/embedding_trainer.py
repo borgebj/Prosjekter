@@ -159,7 +159,7 @@ class EmbeddingTrainer:
         for epoch in range(epochs):
             loss = self.calculate_loss()
 
-            if epoch % (epochs // 6) == 0:
+            if epoch % (epochs // 5) == 0:
                 print(f"Epoch {epoch}: loss = {loss:.4f}")
 
             self.train_step(learning_rate)
