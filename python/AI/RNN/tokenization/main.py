@@ -56,7 +56,7 @@ test_tokenizer(
     "character",
     character_tokenize,
     text,
-    sequence_length=8
+    sequence_length=5
 )
 
 # Word-level
@@ -64,7 +64,7 @@ test_tokenizer(
     "word",
     word_tokenize,
     text,
-    sequence_length=8
+    sequence_length=5
 )
 
 

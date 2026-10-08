@@ -129,6 +129,7 @@ print("Each row corresponds to one vocabulary token:\n")
 for token, vector in zip(vocab, one_hot_matrix):
     print(f"{token:>5}: {vector}")
 
+
 # =====================================
 # Experiment 5: Embedding matrix
 # =====================================
@@ -291,3 +292,8 @@ print(f"\nFinal loss: {trainer.calculate_loss():.4f}")
 
 print("\nFinal similarities:")
 print_similarities(embedding_matrix, token_to_id)
+print("\n" + "="*10)
+print("Dot products: 0 means different, 1 means same")
+print("cat · mat:", dot_product(cat, mat))
+print("mat · sat:", dot_product(mat, sat))
+print("mat · mat:", dot_product(mat, mat))
