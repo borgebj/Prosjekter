@@ -1,80 +1,27 @@
 import numpy as np
 
+np.set_printoptions(
+    precision=3,
+    suppress=True,
+    floatmode="fixed",
+    sign="+"
+)
 
-num_headers = 0
+num_experiments = 1
 
 
 def print_header(text):
-    global num_headers
+    global num_experiments
     print("\n\n" + "=" * 60)
-    print(f"EXPERIMENT {num_headers}: {text}")
-    print("=" * 60 + "\n")
-    num_headers += 1
+    print(f"EXPERIMENT {num_experiments}: {text}")
+    print("=" * 60)
+    num_experiments += 1
 
 
 # =====================================
-# Experiment 0: RNN cell
+# Setup
 # =====================================
 
-print_header("RNN CELL")
-
-# Our current input is the embedding for "the".
-x = np.array([0.5, 0.2])
-
-# Hidden state from the previous timestep.
-h_previous = np.array([0.1, -0.3])
-
-# Input → hidden weights.
-W_x = np.array([
-    [0.5, 0.2],
-    [0.1, 0.4]
-])
-
-# Hidden → hidden weights.
-W_h = np.array([
-    [0.3, 0.1],
-    [0.2, 0.5]
-])
-
-# Bias.
-b = np.array([0.1, 0.1])
-
-
-print("Input embedding for: \"the\"", x)
-print("Previous hidden state:", h_previous)
-
-# Contribution from the current input.
-input_contribution = W_x @ x
-
-# Contribution from the previous hidden state.
-hidden_contribution = W_h @ h_previous
-
-print("\nInput contribution:", input_contribution)
-print("Hidden contribution:", hidden_contribution)
-
-# Combine both contributions and the bias.
-pre_activation = (
-    input_contribution
-    + hidden_contribution
-    + b
-)
-
-print("Pre-activation:", pre_activation)
-
-# Activate the pre-activation and create the new hidden state.
-h = np.tanh(pre_activation)
-
-print("New hidden state:", h)
-
-
-# =====================================
-# Experiment 1: RNN sequence
-# - Forward pass through the sentence
-# =====================================
-
-print_header("RNN SEQUENCE")
-
-# Tiny vocabulary for our example.
 vocabulary = {
     0: "the",
     1: "cat",
@@ -83,132 +30,166 @@ vocabulary = {
     4: "mat"
 }
 
-# Embeddings for the three input words.
-#
-# "the" → x_1
-# "cat" → x_2
-# "sat" → x_3
+# Shape: (sequence length, embedding dimension)
+# 3 tokens, each represented by 2 numbers
 x_sequence = np.array([
-    [0.5, 0.2],   # the
-    [0.1, 0.7],   # cat
-    [0.8, 0.3]    # sat
+    [0.5, 0.2],  # Embedding for "the": 2 features
+    [0.1, 0.7],  # Embedding for "cat": 2 features
+    [0.8, 0.3]  # Embedding for "sat": 2 features
 ])
 
 input_tokens = ["the", "cat", "sat"]
 
-# Start with an empty hidden state.
-h = np.array([0.0, 0.0])
+W_x = np.array([
+    [0.5, 0.2],
+    [0.1, 0.4]
+])
 
-print("Input sentence: \"the cat sat\"")
-print("\nInput embeddings:")
+W_h = np.array([
+    [0.3, 0.1],
+    [0.2, 0.5]
+])
 
-for token, embedding in zip(input_tokens, x_sequence):
-    print(f"{token:>4} -> {embedding}")
+b = np.array([0.1, 0.1])
 
-print("\nInitial hidden state: h_0 =", h)
+W_y = np.array([
+    [0.5, 0.2],  # the
+    [0.1, 0.4],  # cat
+    [0.3, 0.6],  # sat
+    [0.2, 0.1],  # on
+    [0.4, 0.3]  # mat
+])
 
+b_y = np.full(5, 0.1)
 
-# Process one word at a time.
-for i, (token, x) in enumerate(zip(input_tokens, x_sequence)):
+print("\nEmbedding dimension: 2 values per token --> [f1, f2]")
+print("Sequence length:     3 tokens --> 'the' 'cat' 'sat'")
+print("Input shape:         (3, 2)")
+print("Hidden state size:   2 values\n")
+print(f"Embeddings:\n\t{x_sequence[0]} # the\n\t{x_sequence[1]} # cat\n\t{x_sequence[2]} # sat")
 
-    # Current input contribution.
-    input_contribution = W_x @ x
+# =====================================
+# Experiment 1: RNN cell
+# =====================================
 
-    # Previous memory contribution.
-    hidden_contribution = W_h @ h
+print_header("RNN CELL")
 
-    # Combine current input + previous memory + bias.
+# Embedding for token "the"
+x = x_sequence[0]
+
+# Initial hidden state: no previous context
+h_previous = np.zeros(2)  # Two hidden-state values, both initialized to 0
+
+# Transform the current token embedding using input-to-hidden weights
+input_contribution = W_x @ x
+
+# Transform the previous hidden state using recurrent weights
+hidden_contribution = W_h @ h_previous
+
+# Combine input, previous state, and bias before activation
+pre_activation = input_contribution + hidden_contribution + b
+
+# Apply tanh to calculate the new hidden state
+h = np.tanh(pre_activation)
+
+print("Input token:          'the'")
+print("Embedding:           ", x)
+print("Previous hidden:     ", h_previous, "\t-\t initially empty")
+print("Input contribution:  ", input_contribution, "\t-\t input weights @ embedding")
+print("Hidden contribution: ", hidden_contribution, "\t-\t hidden weights @ prev hidden state")
+print("Pre-activation:      ", pre_activation, "\t-\t z = (input_contrib + hidden_contrib + bias)")
+print("New hidden state:    ", h, "\t-\t tanh(z)")
+
+# =====================================
+# Experiment 2: Process a sequence
+# =====================================
+
+print_header("RNN SEQUENCE")
+
+h = np.zeros(2)
+
+print(f"Input sentence:       '{' '.join(input_tokens)}'")
+print("Initial hidden state:", h)
+
+for timestep, (token, x) in enumerate(
+        zip(input_tokens, x_sequence), start=1
+):
+    h_previous = h.copy()
+
+    # (input) weights @ embedding
+    input_contribution = (W_x @ x)
+
+    # (hidden) weights @ previous state
+    hidden_contribution = (W_h @ h_previous)
+
     pre_activation = (
-        input_contribution
-        + hidden_contribution
-        + b
+            input_contribution
+            + hidden_contribution
+            + b  # ias
     )
 
-    # Create the new hidden state.
+    # hidden activation
     h = np.tanh(pre_activation)
 
-    print(f"\nTime step {i + 1}: \"{token}\"")
-    print("Input:", x)
-    print("Input contribution:", input_contribution)
-    print("Previous hidden contribution:", hidden_contribution)
-    print(f"New hidden state: h_{i + 1} =", h)
+    print(f"\nTimestep {timestep}: [ '{token}' ]")
+    print(f"(1)  Embedding:          \t {x} \t-\t embeddings[{timestep-1}]")
+    print(f"(2)  Input contribution: \t {input_contribution} \t-\t W_x @ x")
+    print(f"(3)  Hidden contribution:\t {hidden_contribution} \t-\t W_h @ prev_h")
+    print(f"(4)  Combined + bias:    \t {pre_activation} \t-\t input + hidden + bias")
+    print(f"(5)  Hidden state:       \t {h} \t-\t tanh(combined)")
 
+print("\nFinal hidden state:  ", h)
 
 # =====================================
-# Experiment 2: RNN output
-# - Predict the next token
+# Experiment 3: Output and prediction
 # =====================================
 
-print_header("RNN OUTPUT")
+print_header("OUTPUT AND PREDICTION")
 
-# The correct next token in our example.
 target_token_id = 3
 target_token = vocabulary[target_token_id]
 
-print("Input sentence: \"the cat sat\"")
-print("Correct next token:", target_token)
-
-
-# Output weights.
-#
-# 2 hidden dimensions
-# → 5 possible output tokens
-W_y = np.array([
-    [0.5, 0.2],   # the
-    [0.1, 0.4],   # cat
-    [0.3, 0.6],   # sat
-    [0.2, 0.1],   # on
-    [0.4, 0.3]    # mat
-])
-
-# Output bias.
-b_y = np.array([
-    0.1,
-    0.1,
-    0.1,
-    0.1,
-    0.1
-])
-
-
-# The final hidden state represents the sequence
-# processed so far: "the cat sat".
-print("\nFinal hidden state:", h)
-
-
-# Convert the hidden state into one score for each
-# possible next token.
 output_scores = W_y @ h + b_y
 
-print("\nOutput scores:")
 
-for token_id, score in enumerate(output_scores):
-    print(f"{vocabulary[token_id]:>4} -> {score:.4f}")
-
-
-# =====================================
-# Softmax
-# =====================================
-
-def softmax(x):
-    exp_x = np.exp(x - np.max(x))
-    return exp_x / np.sum(exp_x)
+def softmax(scores):
+    exp_scores = np.exp(scores - np.max(scores))
+    return exp_scores / np.sum(exp_scores)
 
 
+# softmax:
+#   - converts to val between 0 and 1
+#   - normalize so all so sum(all) = 1
 probabilities = softmax(output_scores)
 
-print("\nOutput probabilities:")
+print(f"Input sentence:       '{' '.join(input_tokens)}'")
+print(f"Correct next token:   '{target_token}'")
 
-for token_id, probability in enumerate(probabilities):
-    print(f"{vocabulary[token_id]:>4} -> {probability:.4f}")
+print("\nToken scores and probabilities:")
 
+for token_id, token in vocabulary.items():
+    print(
+        f"  [{token:>4} ]: "
+        f"score = {output_scores[token_id]:+.3f}  |  "
+        f"probability = {probabilities[token_id]:.3f}"
+    )
 
-print("\nSum of probabilities:", np.sum(probabilities))
-
-
-# Select the token with the highest probability.
+# highest probability among all
 prediction_id = np.argmax(probabilities)
 prediction_token = vocabulary[prediction_id]
 
-print("\nPredicted token:", prediction_token)
-print("Correct token:  ", target_token)
+print(f"\nPredicted token:     '{prediction_token}'")
+print(f"Correct token:       '{target_token}'")
+
+# =====================================
+# Experiment 4: Cross-entropy loss
+# =====================================
+
+print_header("CROSS-ENTROPY LOSS")
+
+target_probability = probabilities[target_token_id]
+loss = -np.log(target_probability)
+
+print(f"Correct token:         '{target_token}'")
+print(f"Probability of target: {target_probability:.3f}")
+print(f"Cross-entropy loss:    {loss:.3f}")

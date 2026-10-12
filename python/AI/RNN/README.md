@@ -1,256 +1,85 @@
-# RNN – Recurrent Neural Network
+# RNN – Recurrent Neural Networks
 
 ## Mål
+Utforske de viktigste byggesteinene bak RNN-er gjennom praktiske eksperimenter, og til slutt bygge en liten modell som lærer å forutsi neste token i en tekstsekvens.
 
-Bygge en liten **språkmodell som kan lære mønstre i tekst og generere sin egen tekst**.
+## Block 1 – Tokenization
+I blokk 1 utforsker jeg det første steget innen dataprosessering: å dele opp tekst i tokens og lage et *vocabulary* som mapper hvert token til en ID.
 
-* Bli mer kjent med **RNN-er, språkmodeller og praktisk bruk av relevante biblioteker og verktøy** som brukes i AI/ML-utvikling. Jeg trenger derfor ikke implementere alt fra scratch. Poenget er å forstå de viktigste konseptene, samtidig som jeg får erfaring med hvordan slike modeller faktisk bygges og brukes i praksis.
-* Bygge prosjektet gradvis, i stedet for å lage hele modellen på én gang. Totalt deler jeg det opp i **7 blokker**, hvor hver blokk introduserer én viktig del av systemet. Hver blokk skal inneholde et lite eksperiment eller en undersøkelse, slik at jeg ikke bare implementerer komponenten, men også forstår hvorfor og hvordan den brukes.
+**Eksempel:**
+```python
+"the cat sat"
+→ ["the", "cat", "sat"] # tokens
+→ [0, 1, 2]             # ID's
 
-Prosjektet blir omtrent:
-
-```text
-Tekst
- ↓
-Tekstbehandling
- ↓
-Embeddings
- ↓
-RNN
- ↓
-Språkmodell
- ↓
-Trening
- ↓
-Tekstgenerering
+# the mapping: token:ID
+vocabulary = {
+    "the": 0,
+    "cat": 1,
+    "sat": 2
+}
 ```
 
----
+## Block 2 – Embeddings
+I blokk 2 utforsker jeg hvordan token-ID-er representeres som numeriske vektorer som et nevralt nettverk kan behandle. Jeg undersøker embedding-matriser, direkte oppslag og hvordan embeddings brukes som input til en modell.
 
-## Blokk 1 – Tekstbehandling
+**Eksempel:**
+```python
+token_id = 1  # "cat"
 
-**Formål:** Forstå hvordan rå tekst gjøres om til data som kan brukes av et nevralt nettverk, og hvordan ulike tokeniseringsvalg påvirker dette.
+embedding = embedding_matrix[token_id]
+position = positional_encoding(position_id, embedding_dim)
 
-Utforske:
-
-* tokenisering og vocabulary
-* character-level vs. word-level
-* input/target-sekvenser for next-token prediction
-* relevante verktøy for tekstbehandling
-
-### Gjennomført
-
-Jeg har laget en liten, gjenbrukbar pipeline for:
-
-```text
-Tekst → Tokenisering → Vocabulary → Token-IDer → Input/target-sekvenser
+# embedding    [0.2, -0.4, 0.7]
+# posisjon     [-0.3, 0.8, 0.1]
+# kombinert    [-0.1, 0.4, 0.8]
 ```
 
-Jeg har sammenlignet character-level og word-level tokenisering, blant annet med tanke på vocabulary-størrelse og sekvenslengde. Jeg har også undersøkt hvordan `sequence_length` påvirker treningssekvensene.
+**NB! Positional Vectors** representerer hvor i en sekvens et token befinner seg.  
+I Transformers kombineres posisjon + embedding, slik at modellen kan ta hensyn til rekkefølgen på tokens. RNN bruker vanligvis ikke det, men er inkludert likevel.
 
-For word-level tokenisering har jeg også testet lowercasing og fjerning av punctuation.
+## Block 3 – RNN Fundamentals
+I blokk 3 utforsker jeg hvordan en RNN behandler én input om gangen og viderefører informasjon fra tidligere tidssteg gjennom en *hidden state*. Jeg bygger videre på grunnleggende prinsipper fra nevrale nettverk, som vekter, bias og aktiveringsfunksjoner.
 
-### Gjenstår
+**Eksempel:**
+```python
+# embedding
+x = embedding_matrix[token_id]
 
-* undersøke stemming og lemmatization
-* undersøke stopword removal
-* undersøke `<UNK>` og andre special tokens som `<PAD>`, `<BOS>` og `<EOS>`
-* undersøke subword-tokenisering og relevante verktøy
-
-**Sluttresultat:** En gjenbrukbar pipeline som gjør tekst om til ferdige input/target-sekvenser for RNN-modellen.
-
----
-
-## Blokk 2 – Embeddings
-
-**Mål:** Utforske hvordan tokens kan representeres som vektorer, og hvorfor dette er nyttig.
-
-Undersøke ulike måter å representere tekst på, for eksempel:
-
-* one-hot
-* TF-IDF
-* embeddings
-
-Visualisere representasjonene, for eksempel med **PCA**, for å undersøke om tokens med lignende betydning eller bruk ender opp nær hverandre.
-
-Deretter lage et enkelt embedding-lag og undersøke hvordan embeddings håndteres i praktiske ML-biblioteker.
-
-**Sluttresultat:** En bedre forståelse av hvordan tekst går fra token IDs til numeriske vektorer som kan brukes av RNN-en.
-
----
-
-## Blokk 3 – RNN
-
-**Mål:** Forstå hvordan et rekurrent nevralt nettverk kan behandle sekvenser og ta vare på informasjon fra tidligere tidssteg.
-
-Bygge videre på forståelsen fra `NN`-prosjektet og undersøke:
-
-* hidden state
-* recurrent weights
-* tidssteg
-* hvordan informasjon føres videre gjennom en sekvens
-* Backpropagation Through Time (BPTT)
-
-Starte med en **svært enkel numerisk RNN**, uten tekst eller embeddings, slik at selve mekanismen kan forstås isolert.
-
-```text
-x₁ → h₁
-      ↓
-x₂ → h₂
-      ↓
-x₃ → h₃
+# Activation for hidden state
+h = np.tanh(
+    W_x @ x + W_h @ h_previous + b
+)
 ```
 
-Jeg kan også visualisere hidden states for å undersøke hvordan representasjonen endrer seg gjennom sekvensen.
+## Block 4 – Training
+I blokk 4 utforsker jeg hvordan en RNN lærer ved å sammenligne prediksjoner med riktige svar og justere vektene for å redusere feilen. Jeg undersøker loss, gradient descent og hovedideen bak *Backpropagation Through Time (BPTT)*.
 
-**Sluttresultat:** En fungerende og forstått RNN som kan behandle en sekvens.
-
----
-## Blokk 4A – Intent classification
-
-**Mål:** Bruke RNN-en til en annen NLP-oppgave enn språkmodellering:
-klassifisering av tekst i forhåndsdefinerte intents.
-
-Bygge:
-
-Tekst
- ↓
-Tokenisering
- ↓
-Embedding
- ↓
-RNN
- ↓
-Classification layer
- ↓
-Intent
-
-## Blokk 4B – Språkmodell
-
-**Mål:** Koble RNN-en til tekst og gjøre den om til en faktisk språkmodell.
-
-Bygge:
-
+**Eksempel:**
 ```text
-Token IDs
- ↓
-Embedding
- ↓
-RNN
- ↓
-Output-lag
- ↓
-Softmax
- ↓
-Neste-token-prediksjon
+Input:       "the cat sat"
+Target:      "on"
+
+Prediksjon:  "mat"
+Loss:        måler hvor feil prediksjonen er
+
+→ Oppdater vektene
+→ Gjenta treningen
 ```
 
-Introdusere:
+## Block 5 – RNN Prototype
+I blokk 5 kombinerer jeg tokenisering, embeddings, RNN og trening til én fungerende prototype. Modellen trenes på et lite tekstkorpus og forsøker å forutsi neste token basert på tidligere tokens.
 
-* output-lag
-* softmax
-* cross-entropy loss
-* next-token prediction
-
-Undersøke hvordan modellens sannsynligheter endrer seg når den får mer kontekst.
-
-**Sluttresultat:** En språkmodell som kan ta inn en sekvens og gi sannsynligheter for neste token.
-
----
-
-## Blokk 5 – Trening
-
-**Mål:** Trene hele modellen på faktisk tekst og undersøke hvordan RNN-en lærer.
-
-Sette sammen:
-
+**Eksempel:**
 ```text
-tekst
- ↓
-input/target-sekvenser
- ↓
-forward pass
- ↓
-prediction
- ↓
-loss
- ↓
-BPTT
- ↓
-gradient descent
- ↓
-oppdaterte parametere
+Input:       "the cat sat"
+Prediksjon:  "on"
+
+Input:       "the cat sat on"
+Prediksjon:  "the"
+
+Input:       "the cat sat on the"
+Prediksjon:  "mat"
 ```
 
-Eksperimentere med blant annet:
-
-* learning rate
-* sequence length
-* antall hidden units
-* trenings- og valideringsdata
-* loss over tid
-
-Undersøke problemer som **vanishing/exploding gradients** og hvordan de påvirker treningen.
-
-Bli kjent med relevante biblioteker for trening, datasett, validering og lagring av modeller.
-
-**Sluttresultat:** En faktisk trent RNN-basert språkmodell.
-
----
-
-## Blokk 6 – Tekstgenerering
-
-**Mål:** Bruke den trente modellen til å generere tekst.
-
-Gi modellen en startsekvens:
-
-```text
-"The cat"
-```
-
-og la den predikere ett token om gangen:
-
-```text
-"The cat"
-"The cat sat"
-"The cat sat on"
-"The cat sat on the"
-...
-```
-
-Eksperimentere med:
-
-* random sampling
-* temperature
-* ulike prompts
-* genereringslengde
-
-Undersøke hvordan ulike samplingstrategier påvirker resultatet.
-
-**Sluttresultat:** En liten språkmodell som faktisk kan generere tekst.
-
----
-
-## Blokk 7 – Videreutvikling
-
-**Mål:** Utforske RNN-ens begrensninger og forstå hvorfor nyere arkitekturer ble utviklet.
-
-Undersøke problemer med vanlige RNN-er, spesielt:
-
-* lange sekvenser
-* vanishing/exploding gradients
-* begrenset memory
-
-Deretter utforske utviklingen:
-
-```text
-RNN
- ↓
-LSTM
- ↓
-GRU
- ↓
-Transformer
-```
-
-Jeg
+*Eksemplene viser ønsket oppførsel, ikke garanterte prediksjoner fra modellen.*
