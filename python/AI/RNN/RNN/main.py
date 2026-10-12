@@ -197,26 +197,45 @@ print(f"Probability of target: \t {target_probability:.3f}")
 print(f"Cross-entropy loss:    \t {loss:.3f}")
 
 
+
 # =====================================
 # Experiment 5: RNN model and weights
 # =====================================
 
 print_header("RNN MODEL AND WEIGHTS")
 
-print("Purpose: Initialize and run a reusable RNN.")
-print("Xavier initialization: random weights scaled by layer dimensions.")
+print("Xavier initialization scales random weights.")
 print("Biases start at zero.\n")
 
-model = RNN(input_size=2, hidden_size=2)
+model = RNN(
+    input_size=2,
+    hidden_size=2,
+    output_size=len(vocabulary)
+)
+
+# Process the input sequence
 hidden_states = model.forward(x_sequence)
 
 print("W_x (input-to-hidden):")
 print(model.W_x)
+
 print("\nW_h (hidden-to-hidden):")
 print(model.W_h)
-print("\n> Both are random")
-print("\nBias:", model.b)
-print("> starts at 0")
+
+print("\nW_y (hidden-to-output):")
+print(model.W_y)
 
 print("\nHidden states:\n", hidden_states)
-print("Final hidden state:", hidden_states[-1])
+
+# Predict the next token
+prediction_id, probabilities = model.predict(x_sequence)
+
+print(f"\nInput sequence:    '{' '.join(input_tokens)}'")
+print(f"Target next word:  '{target_token}'")
+
+print("\nNext-word probabilities:")
+for token_id, token in vocabulary.items():
+    print(f"  {token:>4}: {probabilities[token_id]:.3f}")
+
+print(f"\nPredicted next word: '{vocabulary[prediction_id]}'")
+print(f"Full prediction:     '{' '.join(input_tokens)} {vocabulary[prediction_id]}'")
