@@ -1,3 +1,5 @@
+import rnn
+from rnn import RNN
 import numpy as np
 
 np.set_printoptions(
@@ -66,7 +68,7 @@ print("\nEmbedding dimension: 2 values per token --> [f1, f2]")
 print("Sequence length:     3 tokens --> 'the' 'cat' 'sat'")
 print("Input shape:         (3, 2)")
 print("Hidden state size:   2 values\n")
-print(f"Embeddings:\n\t{x_sequence[0]} # the\n\t{x_sequence[1]} # cat\n\t{x_sequence[2]} # sat")
+print(f"Embeddings:\n\t{x_sequence[0]}\t'the'\n\t{x_sequence[1]}\t'cat'\n\t{x_sequence[2]}\t'sat'")
 
 # =====================================
 # Experiment 1: RNN cell
@@ -132,7 +134,7 @@ for timestep, (token, x) in enumerate(
     h = np.tanh(pre_activation)
 
     print(f"\nTimestep {timestep}: [ '{token}' ]")
-    print(f"(1)  Embedding:          \t {x} \t-\t embeddings[{timestep-1}]")
+    print(f"(1)  Embedding:          \t {x} \t-\t embeddings[{timestep - 1}]")
     print(f"(2)  Input contribution: \t {input_contribution} \t-\t W_x @ x")
     print(f"(3)  Hidden contribution:\t {hidden_contribution} \t-\t W_h @ prev_h")
     print(f"(4)  Combined + bias:    \t {pre_activation} \t-\t input + hidden + bias")
@@ -190,6 +192,31 @@ print_header("CROSS-ENTROPY LOSS")
 target_probability = probabilities[target_token_id]
 loss = -np.log(target_probability)
 
-print(f"Correct token:         '{target_token}'")
-print(f"Probability of target: {target_probability:.3f}")
-print(f"Cross-entropy loss:    {loss:.3f}")
+print(f"Correct token:         \t '{target_token}'")
+print(f"Probability of target: \t {target_probability:.3f}")
+print(f"Cross-entropy loss:    \t {loss:.3f}")
+
+
+# =====================================
+# Experiment 5: RNN model and weights
+# =====================================
+
+print_header("RNN MODEL AND WEIGHTS")
+
+print("Purpose: Initialize and run a reusable RNN.")
+print("Xavier initialization: random weights scaled by layer dimensions.")
+print("Biases start at zero.\n")
+
+model = RNN(input_size=2, hidden_size=2)
+hidden_states = model.forward(x_sequence)
+
+print("W_x (input-to-hidden):")
+print(model.W_x)
+print("\nW_h (hidden-to-hidden):")
+print(model.W_h)
+print("\n> Both are random")
+print("\nBias:", model.b)
+print("> starts at 0")
+
+print("\nHidden states:\n", hidden_states)
+print("Final hidden state:", hidden_states[-1])
