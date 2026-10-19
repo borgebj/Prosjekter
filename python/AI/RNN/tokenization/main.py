@@ -1,6 +1,8 @@
+
 from tokenizer import (
     character_tokenize,
     word_tokenize,
+    BPETokenizer,
     create_vocabulary,
     encode,
     decode,
@@ -8,18 +10,31 @@ from tokenizer import (
     add_special_tokens
 )
 
-
-text = """\
-The cat sat on the mat.
-The cat was happy.
-The dog sat beside the cat.
-"""
+num_experiments = 1
 
 
-def test_tokenizer(name, tokenizer, text, sequence_length):
-    print("\n" + "=" * 50)
-    print(f"{name.upper()} TOKENIZATION")
-    print("=" * 50)
+def print_header(text: str) -> None:
+    global num_experiments
+    print("\n\n" + "=" * 60)
+    print(f"EXPERIMENT {num_experiments}: {text}")
+    print("=" * 60)
+    num_experiments += 1
+
+
+corpus = [
+    "The cat sat on the mat.",
+    "The dog sat beside the cat.",
+    "The cat was happy.",
+]
+
+
+def test_tokenizer(
+    name: str,
+    tokenizer,
+    text: str,
+    sequence_length: int
+) -> None:
+    print_header(f"{name.upper()} TOKENIZATION")
 
     tokens = tokenizer(text)
     tokens = add_special_tokens(tokens)
@@ -32,7 +47,9 @@ def test_tokenizer(name, tokenizer, text, sequence_length):
     print("Encoded:", encoded)
 
     print("\nSequences:")
-    for input_ids, target_id in zip(inputs, targets):
+    for i, (input_ids, target_id) in enumerate(zip(inputs, targets)):
+        if i > 20: print("..."); break
+
         input_tokens = decode(input_ids, id_to_token)
         target_token = decode([target_id], id_to_token)
 
@@ -51,11 +68,16 @@ def test_tokenizer(name, tokenizer, text, sequence_length):
     print(f"Sequences: {len(inputs)}")
 
 
+# Corpus
+print("\nCorpus used:\n")
+combined_text = "\n".join(corpus)
+print(combined_text)
+
 # Character-level
 test_tokenizer(
     "character",
     character_tokenize,
-    text,
+    combined_text,
     sequence_length=5
 )
 
@@ -63,24 +85,50 @@ test_tokenizer(
 test_tokenizer(
     "word",
     word_tokenize,
-    text,
+    combined_text,
     sequence_length=5
 )
 
 
 # =====================================
-# Unknown token test
+# BPE TOKENIZATION
+print_header("BPE TOKENIZATION")
 
-print("\n" + "=" * 50)
-print("UNKNOWN TOKEN TEST")
-print("=" * 50)
+bpe = BPETokenizer()
+merges = bpe.train(corpus, num_merges=20)
 
-tokens = word_tokenize(text)
+# Tokenize each sentence separately, then combine the tokens.
+tokens = []
+for sentence in corpus:
+    tokens.extend(bpe.tokenize(sentence))
+
 tokens = add_special_tokens(tokens)
 vocab, token_to_id, id_to_token = create_vocabulary(tokens)
+encoded = encode(tokens, token_to_id)
+inputs, targets = create_sequences(encoded, sequence_length=5)
+
+print("\nLearned merge rules:")
+for left, right in merges:
+    print(f"  {left!r} + {right!r} -> {left + right!r}")
+
+print("\nTokens:", tokens)
+print("Vocabulary:", vocab)
+print("Encoded:", encoded)
+print(
+    f"\nStatistics: {len(tokens)} tokens, "
+    f"{len(vocab)} vocabulary entries, "
+    f"{len(inputs)} sequences"
+)
+
+
+# =====================================
+# UNKNOWN TOKEN TEST
+print_header("UNKNOWN TOKEN TEST")
+
+training_tokens = add_special_tokens(word_tokenize(combined_text))
+_, token_to_id, id_to_token = create_vocabulary(training_tokens)
 
 test_tokens = word_tokenize("The bird sat outside")
-
 encoded = encode(test_tokens, token_to_id)
 decoded = decode(encoded, id_to_token)
 

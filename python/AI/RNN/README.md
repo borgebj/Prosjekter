@@ -4,7 +4,8 @@
 Utforske de viktigste byggesteinene bak RNN-er gjennom praktiske eksperimenter, og til slutt bygge en liten modell som lærer å forutsi neste token i en tekstsekvens.
 
 ## Block 1 – Tokenization
-I blokk 1 utforsker jeg det første steget innen dataprosessering: å dele opp tekst i tokens og lage et *vocabulary* som mapper hvert token til en ID.
+I blokk 1 utforsker jeg det første steget innen dataprosessering: å dele opp tekst i tokens og lage et *vocabulary* som mapper hvert token til en ID. 
+I tillegg implementerer jeg subword-tokenisering med Byte Pair Encoding (BPE)
 
 **Eksempel:**
 ```python
@@ -18,6 +19,10 @@ vocabulary = {
     "cat": 1,
     "sat": 2
 }
+
+# BPE merge frequent character pairs into subwords
+"the cat sat"
+→ ["the", "cat", "s", "at"]   # example tokens
 ```
 
 ## Block 2 – Embeddings
