@@ -1,34 +1,44 @@
 # RNN – Recurrent Neural Networks
 
 ## Mål
+
 Utforske de viktigste byggesteinene bak RNN-er gjennom praktiske eksperimenter, og til slutt bygge en liten modell som lærer å forutsi neste token i en tekstsekvens.
 
 ## Block 1 – Tokenization
-I blokk 1 utforsker jeg det første steget innen dataprosessering: å dele opp tekst i tokens og lage et *vocabulary* som mapper hvert token til en ID. 
-I tillegg implementerer jeg subword-tokenisering med Byte Pair Encoding (BPE)
+
+I blokk 1 utforsker jeg det første steget innen dataprosessering: å dele opp tekst i tokens og lage et *vocabulary* som mapper hvert token til en ID.
+
+I tillegg implementerer jeg subword-tokenisering med Byte Pair Encoding (BPE), som lærer å slå sammen hyppige tegnpar til større subwords.
 
 **Eksempel:**
+
 ```python
 "the cat sat"
-→ ["the", "cat", "sat"] # tokens
-→ [0, 1, 2]             # ID's
+→ ["the", "cat", "sat"]  # tokens
+→ [0, 1, 2]              # IDs
 
-# the mapping: token:ID
+# Mapping: token → ID
 vocabulary = {
     "the": 0,
     "cat": 1,
     "sat": 2
 }
 
-# BPE merge frequent character pairs into subwords
-"the cat sat"
-→ ["the", "cat", "s", "at"]
+# BPE lærer å slå sammen pair som forekommer ofte
+"The cat was happy. The cat was unhappy."
+→ ["▁the", "▁cat", "▁was", "▁happy", ".", 
+   "▁the", "▁cat", "▁was", "▁un", "happy", "."]
+
+# Vocabulary inneholder unike tokens
+→ ["▁the", "▁cat", "▁was", "▁happy", ".", "▁un", ...]
 ```
 
 ## Block 2 – Embeddings
+
 I blokk 2 utforsker jeg hvordan token-ID-er representeres som numeriske vektorer som et nevralt nettverk kan behandle. Jeg undersøker embedding-matriser, direkte oppslag og hvordan embeddings brukes som input til en modell.
 
 **Eksempel:**
+
 ```python
 token_id = 1  # "cat"
 
@@ -40,51 +50,56 @@ position = positional_encoding(position_id, embedding_dim)
 # kombinert    [-0.1, 0.4, 0.8]
 ```
 
-**NB! Positional Vectors** representerer hvor i en sekvens et token befinner seg.  
-I Transformers kombineres posisjon + embedding, slik at modellen kan ta hensyn til rekkefølgen på tokens. RNN bruker vanligvis ikke det, men er inkludert likevel.
+**NB! Positional Vectors** representerer hvor i en sekvens et token befinner seg. I Transformers kombineres posisjon og embedding, slik at modellen kan ta hensyn til rekkefølgen på tokens. RNN-er bruker vanligvis ikke positional encodings, fordi rekkefølgen allerede behandles gjennom de rekurrente hidden states. Konseptet er inkludert for å illustrere forskjellen mellom modellarkitekturer.
 
 ## Block 3 – RNN Fundamentals
-I blokk 3 bygger jeg en enkel RNN som bruker embeddings (fra blokk 2) til å behandle tekstsekvenser og forutsi neste token.  
-Jeg utforser _hidden states_, vekter, bias, aktiveringsfunksjoner, loss, og _Backpropagation Through Time (BPTT)_, samt viser én enkel treningsppdatering.
+
+I blokk 3 bygger jeg en enkel RNN som bruker embeddings fra blokk 2 til å behandle tekstsekvenser og forutsi neste token.
+
+Jeg utforsker *hidden states*, vekter, bias, aktiveringsfunksjoner, loss og *Backpropagation Through Time (BPTT)*, samt viser én enkel treningsoppdatering.
 
 **Eksempel:**
+
 ```python
-# embedding
+# Embedding
 x = embedding_matrix[token_id]
 
-# Activation for hidden state
+# Beregn hidden state
 h = np.tanh(
     W_x @ x + W_h @ h_previous + b
 )
 
-# predict next token
+# Prediker neste token
 probabilities = softmax(W_y @ h + b_y)
 
-# trening:
+# Trening
 Input:       "the cat sat on the"
 Target:      "mat"
 
 Prediksjon:  "sat"
-Loss:        måler hvor feil prediksjonen er
+Loss:        Måler hvor feil prediksjonen er
 
 → Oppdater vektene
 → Gjenta treningen
 ```
 
 ## Block 4 – Training
-I blokk 4 trener jeg RNN-modellen på et lite tekstkorpus og kombinerer tokenisering, embeddings, og trening i én sammenhengende pipeline.  
-Jeg undersøøker hvordan modellen lærer fra _flere_ eksempler og evaluerer prediksjonene.
+
+I blokk 4 trener jeg RNN-modellen på et lite tekstkorpus og kombinerer tokenisering, embeddings og trening i én sammenhengende pipeline.
+
+Jeg undersøker hvordan modellen lærer fra flere eksempler, evaluerer prediksjonene på trenings- og testdata og eksperimenterer med tekstgenerering.
 
 **Eksempel:**
+
 ```text
-Input:       "the cat sat"          target: "on"
+Input:       "the cat sat"          Target: "on"
 Prediksjon:  "on"
 
-Input:       "the cat sat on"       target: "the"
+Input:       "the cat sat on"       Target: "the"
 Prediksjon:  "the"
 
-Input:       "the cat sat on the"   target: "mat"
+Input:       "the cat sat on the"   Target: "mat"
 Prediksjon:  "mat"
 ```
 
-*Eksemplene viser ønsket oppførsel, ikke garanterte prediksjoner fra modellen.*
+*Eksemplene viser ønsk
