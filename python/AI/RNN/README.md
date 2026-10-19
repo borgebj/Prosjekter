@@ -13,16 +13,16 @@ I tillegg implementerer jeg subword-tokenisering med Byte Pair Encoding (BPE)
 → ["the", "cat", "sat"] # tokens
 → [0, 1, 2]             # ID's
 
-# the mapping: token:ID
+# mapping: token:ID
 vocabulary = {
     "the": 0,
     "cat": 1,
     "sat": 2
 }
 
-# BPE merge frequent character pairs into subwords
+# BPE merger ord som forekommer ofte i subwords
 "the cat sat"
-→ ["the", "cat", "s", "at"]   # example tokens
+→ ["the", "cat", "s", "at"]   # eks tokens
 ```
 
 ## Block 2 – Embeddings
