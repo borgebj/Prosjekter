@@ -22,7 +22,7 @@ vocabulary = {
 
 # BPE merge frequent character pairs into subwords
 "the cat sat"
-→ ["the", "cat", "s", "at"]   # example tokens
+→ ["the", "cat", "s", "at"]
 ```
 
 ## Block 2 – Embeddings
@@ -44,7 +44,8 @@ position = positional_encoding(position_id, embedding_dim)
 I Transformers kombineres posisjon + embedding, slik at modellen kan ta hensyn til rekkefølgen på tokens. RNN bruker vanligvis ikke det, men er inkludert likevel.
 
 ## Block 3 – RNN Fundamentals
-I blokk 3 utforsker jeg hvordan en RNN behandler én input om gangen og viderefører informasjon fra tidligere tidssteg gjennom en *hidden state*. Jeg bygger videre på grunnleggende prinsipper fra nevrale nettverk, som vekter, bias og aktiveringsfunksjoner.
+I blokk 3 bygger jeg en enkel RNN som bruker embeddings (fra blokk 2) til å behandle tekstsekvenser og forutsi neste token.  
+Jeg utforser _hidden states_, vekter, bias, aktiveringsfunksjoner, loss, og _Backpropagation Through Time (BPTT)_, samt viser én enkel treningsppdatering.
 
 **Eksempel:**
 ```python
@@ -55,35 +56,34 @@ x = embedding_matrix[token_id]
 h = np.tanh(
     W_x @ x + W_h @ h_previous + b
 )
-```
 
-## Block 4 – Training
-I blokk 4 utforsker jeg hvordan en RNN lærer ved å sammenligne prediksjoner med riktige svar og justere vektene for å redusere feilen. Jeg undersøker loss, gradient descent og hovedideen bak *Backpropagation Through Time (BPTT)*.
+# predict next token
+probabilities = softmax(W_y @ h + b_y)
 
-**Eksempel:**
-```text
-Input:       "the cat sat"
-Target:      "on"
+# trening:
+Input:       "the cat sat on the"
+Target:      "mat"
 
-Prediksjon:  "mat"
+Prediksjon:  "sat"
 Loss:        måler hvor feil prediksjonen er
 
 → Oppdater vektene
 → Gjenta treningen
 ```
 
-## Block 5 – RNN Prototype
-I blokk 5 kombinerer jeg tokenisering, embeddings, RNN og trening til én fungerende prototype. Modellen trenes på et lite tekstkorpus og forsøker å forutsi neste token basert på tidligere tokens.
+## Block 4 – Training
+I blokk 4 trener jeg RNN-modellen på et lite tekstkorpus og kombinerer tokenisering, embeddings, og trening i én sammenhengende pipeline.  
+Jeg undersøøker hvordan modellen lærer fra _flere_ eksempler og evaluerer prediksjonene.
 
 **Eksempel:**
 ```text
-Input:       "the cat sat"
+Input:       "the cat sat"          target: "on"
 Prediksjon:  "on"
 
-Input:       "the cat sat on"
+Input:       "the cat sat on"       target: "the"
 Prediksjon:  "the"
 
-Input:       "the cat sat on the"
+Input:       "the cat sat on the"   target: "mat"
 Prediksjon:  "mat"
 ```
 

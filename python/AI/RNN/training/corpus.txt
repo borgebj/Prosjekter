@@ -1,0 +1,202 @@
+the cat sat on the mat
+the cat sat on the chair
+the dog sat on the mat
+the dog slept on the chair
+the cat slept on the bed
+the dog played in the garden
+the cat sat on the sofa
+the dog sat on the floor
+the cat slept on the sofa
+the dog slept on the bed
+the cat played in the garden
+the dog played in the park
+the bird sat in the tree
+the bird flew over the house
+the cat watched the bird
+the dog watched the cat
+the small cat sat on the mat
+the big dog sat on the chair
+the small dog slept on the bed
+the big cat slept on the sofa
+the cat ran through the garden
+the dog ran through the park
+the bird flew through the garden
+the bird sat on the roof
+the cat walked into the house
+the dog walked into the garden
+the cat ate the food
+the dog ate the food
+the bird ate the seed
+the cat drank the water
+the dog drank the water
+the child played with the cat
+the child played with the dog
+the child sat on the chair
+the child slept on the bed
+the child watched the bird
+the cat chased the bird
+the dog chased the cat
+the bird watched the dog
+the cat rested under the tree
+the dog rested under the table
+the bird rested on the roof
+the cat jumped over the box
+the dog jumped over the fence
+the child jumped over the puddle
+the cat looked at the window
+the dog looked at the door
+the bird looked at the house
+the cat waited by the door
+the dog waited by the gate
+the child waited in the garden
+the sun shone over the garden
+the rain fell on the roof
+the wind blew through the trees
+the cat stayed inside the house
+the dog stayed outside the house
+the bird returned to the tree
+the child returned to the house
+the cat followed the dog
+the dog followed the child
+the child followed the bird
+the cat found the ball
+the dog found the toy
+the child found the book
+the cat carried the toy
+the dog carried the ball
+the child carried the book
+the cat sat beside the child
+the dog slept beside the cat
+the bird flew above the trees
+the cat climbed onto the chair
+the dog climbed onto the sofa
+the child opened the door
+the child closed the window
+the cat watched the rain
+the dog watched the sun
+the bird flew away from the house
+the cat walked across the room
+the dog walked across the garden
+the child walked across the park
+the cat sat near the window
+the dog sat near the door
+the bird sat near the house
+the cat slept beside the bed
+the dog rested beside the tree
+the child rested under the tree
+the cat played with the ball
+the dog played with the toy
+the child played with the ball
+the bird flew toward the tree
+the cat ran toward the door
+the dog ran toward the gate
+the child ran toward the park
+the cat returned to the sofa
+the dog returned to the bed
+the bird returned to the roof
+the dog ran through the garden
+the dog chased the cat
+the dog found a bone
+the dog carried the stick
+the dog barked at the stranger
+the dog slept beside the fireplace
+the dog followed its owner
+the dog played with the ball
+the dog walked through the forest
+the dog waited by the door
+the cat chased the mouse
+the cat climbed the tree
+the cat slept beside the window
+the cat watched the birds
+the cat drank the milk
+the cat jumped onto the table
+the cat hid under the bed
+the cat followed the child
+the cat played with a ball
+the cat rested near the fire
+the child played in the garden
+the child found a small stone
+the child opened the door
+the child carried a basket
+the child watched the dog
+the child walked beside the river
+the child sat under the tree
+the child picked up the toy
+the child ran across the field
+the child looked through the window
+the boy kicked the ball
+the boy climbed the hill
+the boy opened the box
+the boy carried the book
+the boy followed the path
+the girl found a flower
+the girl fed the cat
+the girl opened the window
+the girl walked across the bridge
+the girl sat beside her friend
+the bird flew over the house
+the bird sat on the branch
+the bird built a nest
+the bird searched for food
+the mouse ran under the table
+the mouse hid behind the box
+the rabbit ate a carrot
+the rabbit jumped over the fence
+the horse ran across the field
+the horse drank water
+the farmer opened the gate
+the farmer fed the animals
+the farmer walked across the field
+the teacher opened the book
+the teacher helped the child
+the student read the story
+the student wrote a letter
+the family ate dinner
+the family walked through the park
+the mother prepared the food
+the father repaired the chair
+the sun rose above the hills
+the rain fell on the ground
+the wind moved the leaves
+the snow covered the road
+the river flowed through the valley
+the water ran beneath the bridge
+the leaves fell from the tree
+the flowers grew beside the path
+the clouds moved across the sky
+the boat sailed across the lake
+the fisherman caught a fish
+the train arrived at the station
+the car stopped beside the house
+the bus drove through the town
+the man carried a heavy bag
+the woman bought fresh bread
+the baker prepared the dough
+the shopkeeper opened the store
+the gardener planted a tree
+the gardener watered the flowers
+the door opened slowly
+the window closed suddenly
+the little dog ran home
+the hungry cat searched for food
+the tired child fell asleep
+the old man sat by the river
+the young woman walked into the room
+the small bird landed on the fence
+the red ball rolled under the chair
+the wooden box stood beside the wall
+the blue car drove down the road
+the children played outside
+the children laughed together
+the children ran toward the playground
+the friends walked home together
+the dog ran because it heard a noise
+the cat hid when the door opened
+the child smiled when the dog returned
+the bird flew away after the storm
+the farmer rested after a long day
+the girl picked a flower and gave it to her mother
+the boy found the key and opened the door
+the dog ran into the garden and chased the ball
+the cat climbed the tree and watched the birds
+the child opened the box

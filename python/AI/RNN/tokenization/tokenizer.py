@@ -25,8 +25,11 @@ class BPETokenizer:
 
     @staticmethod
     def pre_tokenize(text: str) -> list[str]:
-        """Splits texts into words and punctuation."""
-        return re.findall(r"\w+|[^\w\s]", text.lower())
+        """Splits text into words and punctuation, marking word beginnings."""
+        pieces = re.findall(r"\w+|[^\w\s]", text.lower())
+
+        # marks begnining using "_"
+        return ["▁" + piece if piece[0].isalnum() else piece for piece in pieces]
 
     @staticmethod
     def get_pair_frequencies(tokens: list[str]) -> Counter[tuple[str, str]]:
@@ -190,3 +193,10 @@ def create_sequences(encoded: list[int], sequence_length: int) -> tuple[list[lis
         targets.append(target_id)
 
     return inputs, targets
+
+
+def tokenize_corpus(corpus: list[str], bpe: BPETokenizer):
+    return [
+        bpe.tokenize(sentence)
+        for sentence in corpus
+    ]
