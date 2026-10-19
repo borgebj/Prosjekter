@@ -102,4 +102,15 @@ Input:       "the cat sat on the"   Target: "mat"
 Prediksjon:  "mat"
 ```
 
-*Eksemplene viser ønsk
+*Eksemplene viser ønsket oppførsel: modellen lærer å forutsi neste token i en sekvens basert på tidligere tokens.*
+
+## Block 5 - Practical implementation
+
+I blokk 5 implementerer jeg en enkel RNN-modell i Python ved hjelp av både numpy og PyTorch.  
+Jeg viser hvordan man kan bygge en RNN fra bunnen av, samt hvordan man kan bruke PyTorchs innebygde RNN-moduler for å forenkle implementasjonen.
+
+**Eksempel**:
+
+```python
+# RNN with pyTorch
+```

@@ -1,234 +1,261 @@
-from rnn import RNN
+"""
+Block 3: RNN showcase.
 
-from AI.RNN.tokenization.tokenizer import (
-    word_tokenize,
-    create_vocabulary,
-)
-from AI.RNN.embedding.embeddings import (
-    create_embedding_matrix,
-)
+Run this file to follow a tiny RNN through next-token prediction:
+forward pass, prediction and loss, then training. The tokens and
+embeddings come from Blocks 1 and 2, and all experiments share one
+sentence and one model (see Context).
+
+Note: the model is created once and shared. The training experiment
+changes its weights, so it must stay last.
+"""
+from AI.RNN.showcase import Showcase, header, takeaway, bolden
+from AI.RNN.model.rnn import RNN
+from AI.RNN.tokenization.tokenizer import word_tokenize, create_vocabulary
+from AI.RNN.embedding.embeddings import create_embedding_matrix
+from dataclasses import dataclass
+from typing import NamedTuple
 import numpy as np
 
 np.set_printoptions(
     precision=3,
     suppress=True,
     floatmode="fixed",
-    sign="+"
+    sign="+",
 )
 
-num_experiments = 0
+TEXT = "The cat sat on the mat."
+EMBEDDING_DIM = 2
+HIDDEN_SIZE = 2
+TRAINING_STEPS = 100
 
-
-def print_header(text):
-    global num_experiments
-    print("\n\n" + "=" * 60)
-    print(f"EXPERIMENT {num_experiments}: {text}")
-    print("=" * 60)
-    num_experiments += 1
+showcase = Showcase()
 
 
 # =====================================
-# Setup: Reuse Block 1 and Block 2
+# Shared data (Blocks 1 and 2 reused)
 # =====================================
 
-print_header("TOKENIZATION AND EMBEDDINGS")
+class Step(NamedTuple):
+    """Every intermediate value of one RNN timestep."""
+    token: str
+    x: np.ndarray                # embedding of the current token
+    input_part: np.ndarray       # W_x @ x
+    hidden_part: np.ndarray      # W_h @ h_previous
+    pre_activation: np.ndarray   # input_part + hidden_part + b
+    h: np.ndarray                # tanh(pre_activation): the new hidden state
 
-text = "The cat sat on the mat."
 
-# Block 1: Tokenize the text and create a vocabulary.
-tokens = word_tokenize(text)
-vocab, token_to_id, id_to_token = create_vocabulary(tokens)
+@dataclass
+class Context:
+    """Data shared by every experiment."""
+    tokens: list[str]
+    vocab: list[str]
+    id_to_token: dict[int, str]
+    token_ids: list[int]
+    input_tokens: list[str]          # every token except the last
+    target_token: str                # the last token: what the model should predict
+    target_token_id: int
+    embedding_matrix: np.ndarray     # E: (vocab size, embedding dim)
+    x_sequence: np.ndarray           # embeddings of the input tokens: (n inputs, embedding dim)
+    model: RNN                       # random weights, changed by the training experiment
+    steps: list[Step]                # manual forward pass of the untrained model
 
-token_ids = np.array([token_to_id[token] for token in tokens], dtype=np.int64)
 
-vocabulary = id_to_token
-vocab_size = len(vocab)
+def forward_steps(model: RNN, input_tokens: list[str], x_sequence: np.ndarray) -> list[Step]:
+    """Runs the forward pass by hand, keeping every intermediate value."""
+    h = np.zeros(HIDDEN_SIZE)
+    steps = []
 
-# Block 2: Convert token IDs into embedding vectors.
-embedding_dim = 2
+    for token, x in zip(input_tokens, x_sequence):
+        input_part = model.W_x @ x
+        hidden_part = model.W_h @ h
+        pre_activation = input_part + hidden_part + model.b
+        h = np.tanh(pre_activation)
+        steps.append(Step(token, x, input_part, hidden_part, pre_activation, h))
 
-embedding_matrix = np.asarray(
-    create_embedding_matrix(vocab_size, embedding_dim),
-    dtype=np.float64
-)
+    return steps
 
-# Block 3: RNN initialization
-# use all tokens except last as input
-input_tokens = tokens[:-1]
-input_ids = token_ids[:-1]
 
-target_token = tokens[-1]  # final is target
-target_token_id = token_to_id[target_token]
+def build_context() -> Context:
+    # Block 1: text -> tokens -> IDs
+    tokens = word_tokenize(TEXT)
+    vocab, token_to_id, id_to_token = create_vocabulary(tokens)
+    token_ids = [token_to_id[t] for t in tokens]
 
-# look up embedding vector for each input token
-# shape:  (n-tokens, embedding_dim)
-x_sequence = embedding_matrix[input_ids]
-
-sequence_length = len(input_tokens)
-
-# RNN Configuration
-hidden_size = 2
-
-print(f"Text:                '{text}'")
-print(f"Tokens:              {tokens}")
-print(f"Vocabulary:          {vocab}")
-print(f"Token IDs:           [{' '.join(map(str, token_ids))}] -> [{' '.join(tokens)}]")
-print(f"Input tokens:        '{' '.join(input_tokens)}'")
-print(f"Target next token:   '{target_token}'\n")
-print("Input embeddings:")
-
-for token, embedding in zip(input_tokens, x_sequence):
-    print(f"  {token:>5} -> {embedding}")
-print(f"  {target_token:>5} -> {embedding_matrix[target_token_id]}  (target)")
-
-# =====================================
-# Experiment 1: RNN Forward
-# =====================================
-
-print_header("RNN FORWARD")
-
-# initialize model with random weights - no training yet
-model = RNN(
-    input_size=embedding_dim,
-    hidden_size=hidden_size,
-    output_size=vocab_size
-)
-
-# PERFORMS A MANUAL FORWARD PASS FOR EXPERIMENT-SAKE
-h_previous = np.zeros(hidden_size)
-hidden_states = []
-
-print(f"Initial hidden state: {h_previous}")
-
-for timestep, (token, x) in enumerate(
-        zip(input_tokens, x_sequence), start=1
-):
-    input_contribution = model.W_x @ x
-    hidden_contribution = model.W_h @ h_previous
-
-    pre_activation = (
-            input_contribution
-            + hidden_contribution
-            + model.b
+    # Block 2: IDs -> embeddings
+    embedding_matrix = np.asarray(
+        create_embedding_matrix(len(vocab), EMBEDDING_DIM),
+        dtype=np.float64,
     )
 
-    h = np.tanh(pre_activation)
-    hidden_states.append(h.copy())
+    # Block 3: use every token but the last as input, the last as target
+    input_tokens, target_token = tokens[:-1], tokens[-1]
+    input_ids, target_token_id = token_ids[:-1], token_ids[-1]
+    x_sequence = embedding_matrix[input_ids]
 
-    print(f"\nTimestep {timestep}: [ '{token}' ]")
-    print(f"(1) Embedding:           \t {x}")
-    print(f"(2) Input contribution:  \t {input_contribution}")
-    print(f"(3) Hidden contribution: \t {hidden_contribution}")
-    print(f"(4) Combined + bias:     \t {pre_activation}")
-    print(f"(5) Hidden state:        \t {h}")
+    model = RNN(
+        input_size=EMBEDDING_DIM,
+        hidden_size=HIDDEN_SIZE,
+        output_size=len(vocab),
+    )
 
-    h_previous = h.copy()
+    return Context(
+        tokens=tokens,
+        vocab=vocab,
+        id_to_token=id_to_token,
+        token_ids=token_ids,
+        input_tokens=input_tokens,
+        target_token=target_token,
+        target_token_id=target_token_id,
+        embedding_matrix=embedding_matrix,
+        x_sequence=x_sequence,
+        model=model,
+        steps=forward_steps(model, input_tokens, x_sequence),
+    )
 
-hidden_states = np.array(hidden_states)
 
-print("\nFinal hidden state:   \t\t", hidden_states[-1])
+def show_setup(ctx: Context) -> None:
+    header("SETUP: TOKENS, EMBEDDINGS AND TARGET (Blocks 1 and 2)")
+    print(f"Text:               '{TEXT}'")
+    print(f"Tokens:             {ctx.tokens}")
+    print(f"Vocabulary:         {ctx.vocab}")
+    print(f"Token IDs:          {ctx.token_ids}")
+    print(f"Input tokens:       '{' '.join(ctx.input_tokens)}'")
+    print(f"Target next token:  '{ctx.target_token}'\n")
 
+    print("Embeddings:")
+    for token, embedding in zip(ctx.input_tokens, ctx.x_sequence):
+        print(f"  {token:>5} -> {embedding}")
 
-# =====================================
-# Experiment 2: Output and prediction
-# =====================================
-
-print_header("OUTPUT AND PREDICTION")
-
-# final hidden state summarize the processed input sequence
-final_hidden_state = hidden_states[-1]
-
-# retrieve scores and probabilities calculated during forward()
-prediction_id, probabilities = model.predict(x_sequence)
-output_scores = model.output_scores
-
-print(f"Input sentence:       '{' '.join(input_tokens)}'")
-print(f"Correct next token:   '{target_token}'")
-print("Final hidden state:  ", final_hidden_state)
-print("\nOutput scores and probabilities:")
-
-for token_id, token in id_to_token.items():
-    print(f"  [{token:>5} ]: "
-          f"score = {output_scores[token_id]:+.3f}  |  "
-          f"probability = {probabilities[token_id]:.3f} ({int(probabilities[token_id] * 100)}%)"
-          )
-
-# convert predicted token ID back to its token
-prediction_token = id_to_token[prediction_id]
-
-print(f"\nPredicted token:      '{prediction_token}'")
-print(f"Correct token:        '{target_token}'")
-print(f"Full prediction:      '{' '.join(input_tokens)} {prediction_token}'")
+    print(bolden(f"\n  {ctx.target_token:>5} -> {ctx.embedding_matrix[ctx.target_token_id]}  (target)"))
 
 
 # =====================================
-# Experiment 3: Cross-entropy loss
+# Experiments
 # =====================================
 
-print_header("CROSS-ENTROPY LOSS")
+@showcase.experiment
+def rnn_forward(ctx: Context) -> None:
+    """RNN forward pass
 
-# calculate loss using probability of correct next token
-loss_before = model.compute_loss(target_token_id)
-target_probability = probabilities[target_token_id]
+    The RNN reads the input tokens one at a time. At every timestep it combines
+    the current embedding with the previous hidden state into a new hidden state:
+        h = tanh(W_x @ x + W_h @ h_previous + b)
+    The weights are random, because the model is not trained yet.
+    """
+    print(f"Initial hidden state: {np.zeros(HIDDEN_SIZE)}")
 
-print(f"Correct token:         \t '{target_token}'")
-print(f"Target token ID:       \t {target_token_id}")
-print(f"Target probability:    \t {target_probability:.3f} ({int(target_probability * 100)}%)")
-print(f"Cross-entropy loss:    \t {loss_before:.3f}")
+    for timestep, step in enumerate(ctx.steps, start=1):
+        print(f"\nTimestep {timestep}: '{step.token}'")
+        print(f"  (1) Embedding:           {step.x}")
+        print(f"  (2) Input contribution:  {step.input_part} \t-  input weights @ embedding")
+        print(f"  (3) Hidden contribution: {step.hidden_part} \t-  hidden weights @ previous hidden state")
+        print(f"  (4) Combined + bias:     {step.pre_activation} \t-  input + hidden + bias")
+        print(f"  (5) Hidden state:        {step.h} \t-  tanh(combined)")
 
-print("\nLoss measures how much probability the model")
-print("assigns to the correct next token.")
-print("The model has not been trained yet.")
+    print(f"\nFinal hidden state: {ctx.steps[-1].h} (used for prediction)")
+
+    takeaway(
+        "The final hidden state summarizes the whole input sequence.",
+        "The output layer uses it to predict the next token.",
+    )
+
+
+@showcase.experiment
+def prediction_and_loss(ctx: Context) -> None:
+    """From hidden state to prediction and loss
+
+    The output layer turns the final hidden state into one score per vocabulary token,
+    and softmax converts the scores into probabilities.
+    Cross-entropy loss measures how much probability went to the correct token (-log p).
+    """
+    model = ctx.model
+    prediction_id, probabilities = model.predict(ctx.x_sequence)
+    scores = model.output_scores
+    loss = model.compute_loss(ctx.target_token_id)
+
+    print(f"Input:               '{' '.join(ctx.input_tokens)}'")
+    print(f"Correct next token:  '{ctx.target_token}'")
+    print(f"Final hidden state:  {ctx.steps[-1].h}\n")
+
+    for token_id, token in ctx.id_to_token.items():
+        probability = probabilities[token_id]
+
+        markers = []
+        if token_id == prediction_id:
+            markers.append("predicted")
+        if token_id == ctx.target_token_id:
+            markers.append("correct")
+        marker = "".join(f"  <- {m}" for m in markers)
+
+        print(
+            f"  [{token:>5} ]: score = {scores[token_id]:+.3f}  |  "
+            f"probability = {probability:.3f} ({probability:.0%}){marker}"
+        )
+
+    predicted = ctx.id_to_token[prediction_id]
+    print(f"\nPredicted token:  '{predicted}'")
+    print(f"Full prediction:  '{' '.join(ctx.input_tokens)} {predicted}'")
+    print(f"\nCross-entropy loss: {loss:.3f}")
+
+    takeaway(
+        "The model is untrained, so its prediction is essentially a guess.",
+        "A lower loss means more probability on the correct token.",
+    )
+
+
+@showcase.experiment
+def training(ctx: Context) -> None:
+    """Training with backpropagation
+
+    Backpropagation through time (BPTT) works out how each weight affects the loss,
+    and the update nudges every weight to lower it.
+    Repeating this on the same example teaches the model to predict the target.
+    """
+    model = ctx.model
+    target_id = ctx.target_token_id
+
+    _, probabilities = model.predict(ctx.x_sequence)
+    probability_before = probabilities[target_id]
+
+    # losses[n] is the loss after n updates.
+    losses = []
+    for _ in range(TRAINING_STEPS):
+        model.forward(ctx.x_sequence)
+        losses.append(model.compute_loss(target_id))
+        model.backward(target_id)
+
+    prediction_id, probabilities = model.predict(ctx.x_sequence)
+    losses.append(model.compute_loss(target_id))
+
+    print("Loss during training:")
+    for n in (0, 1, 10, 50, TRAINING_STEPS):
+        print(f"  after {n:>3} updates: {losses[n]:.4f}")
+
+    print(f"\nFirst update changed the loss by {losses[1] - losses[0]:+.4f}")
+
+    predicted = ctx.id_to_token[prediction_id]
+    print(f"Target probability:  {probability_before:.1%}  ->  {probabilities[target_id]:.1%}")
+    print(f"Predicted token:     '{predicted}'  (correct: '{ctx.target_token}')")
+    print(f"Full prediction:     '{' '.join(ctx.input_tokens)} {predicted}'")
+
+    takeaway(
+        "Each update shifts the weights to put more probability on the correct token.",
+        "The model only sees one example, so it can memorize it.",
+        "That is not the same as learning the language (see the training block).",
+    )
 
 
 # =====================================
-# Experiment 4: Backpropagation
+# Runner
 # =====================================
 
-print_header("BACKPROPAGATION AND ONE TRAINING STEP")
-
-# calculate gradients using BPTT and update weights
-model.backward(target_token_id)
-
-# recalculate prediction
-prediction_id, probabilities = model.predict(x_sequence)
-loss_after = model.compute_loss(target_token_id)
-
-prediction_token = id_to_token[prediction_id]
-target_probability_after = probabilities[target_token_id]
-
-print(f"\nPredicted token:       '{prediction_token}'")
-print(f"Correct token:         '{target_token}'")
-print(f"Target probability:     {target_probability_after:.3f} ({target_probability_after*100:.2f}%) \t vs \t before ({target_probability*100:.2f}%)")
-print(f"Loss after update:      {loss_after:.4f}")
-print(f"Loss change:            {loss_after - loss_before:+.4f}")
-
-if loss_after < loss_before: print("\nThe update reduced the loss.")
-elif loss_after > loss_before: print("\nThe update increased the loss.")
-else: print("\nThe loss remained unchanged.")
+def main() -> None:
+    ctx = build_context()
+    show_setup(ctx)
+    showcase.run(ctx)
 
 
-# =====================================
-# Experiment 5: MODEL TRAINING
-# =====================================
-
-print_header("MODEL TRAINING")
-
-losses = []
-
-for _ in range(100):
-    model.forward(x_sequence)
-    losses.append(model.compute_loss(target_token_id))
-    model.backward(target_token_id)
-
-print(f"Loss, start of training: \t{losses[0]:.4f}")
-print(f"Loss, end of training:   \t{losses[-1]:.4f}")
-
-prediction_id, probabilities = model.predict(x_sequence)
-prediction_token = id_to_token[prediction_id]
-target_probability_trained = probabilities[target_token_id]
-
-print(f"Predicted token:    \t\t'{prediction_token}'")
-print(f"Target probability: \t\t{target_probability_trained:.3f} ({int(target_probability_trained * 100)}%)")
-print(f"Correct token:      \t\t'{target_token}'")
-print(f"Full prediction:     \t\t'{' '.join(input_tokens)} {prediction_token}'")
+if __name__ == "__main__":
+    main()

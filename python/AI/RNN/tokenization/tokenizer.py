@@ -25,77 +25,47 @@ class BPETokenizer:
 
     @staticmethod
     def pre_tokenize(text: str) -> list[str]:
-        """Splits text into words and punctuation, marking word beginnings."""
+        """Splits text into words and punctuation, marking word beginnings w/ '_'"""
         pieces = re.findall(r"\w+|[^\w\s]", text.lower())
-
-        # marks begnining using "_"
         return ["▁" + piece if piece[0].isalnum() else piece for piece in pieces]
 
     @staticmethod
     def get_pair_frequencies(tokens: list[str]) -> Counter[tuple[str, str]]:
         """Counts adjacent token pairs."""
-        pairs = Counter()
+        return Counter(zip(tokens, tokens[1:])) if len(tokens) > 1 else Counter()
 
-        for i in range(len(tokens) - 1):
-            pair = (tokens[i], tokens[i + 1])
-            pairs[pair] += 1
+    @staticmethod
+    def merge_pair(tokens: list[str], pair: tuple[str, str]) -> list[str]:
+        """Replaces every adjacent occurence of 'pair' with merged token"""
+        merged, i = [], 0
 
-        return pairs
+        while i < len(tokens):
+            if i + 1 < len(tokens) and (tokens[i], tokens[i + 1]) == pair:
+                merged.append(tokens[i] + tokens[i + 1])
+                i += 2
+            else:
+                merged.append(tokens[i])
+                i += 1
+        return merged
 
     def train(self, corpus: list[str], num_merges: int) -> list[tuple[str, str]]:
         """Learns BPE merge rules from a corpus."""
-        words = [
-            [list(piece) for piece in self.pre_tokenize(text)]
-            for text in corpus
-        ]
-
+        words = [list(p) for text in corpus for p in self.pre_tokenize(text)]
         self.merges = []
 
         for _ in range(num_merges):
             pairs = Counter()
-
-            # Count adjacent pairs across every piece in every sentence.
-            for pieces in words:
-                for tokens in pieces:
-                    pairs.update(self.get_pair_frequencies(tokens))
+            for tokens in words:
+                pairs.update(self.get_pair_frequencies(tokens))
 
             if not pairs:
                 break
 
-            # Select the most frequent pair; break ties lexicographically.
-            highest = max(pairs.values())
-            most_frequent = min(
-                pair for pair, count in pairs.items()
-                if count == highest
-            )
+            # Most frequent pair - ties broken lexicographically
+            best = min(pairs, key=lambda p: (-pairs[p], p))
 
-            # Apply the merge to every piece in the corpus.
-            new_words = []
-
-            for pieces in words:
-                new_pieces = []
-
-                for tokens in pieces:
-                    new_tokens = []
-                    i = 0
-
-                    while i < len(tokens):
-                        if (
-                                i + 1 < len(tokens)
-                                and (tokens[i], tokens[i + 1]) == most_frequent
-                        ):
-                            new_tokens.append(tokens[i] + tokens[i + 1])
-                            i += 2
-                        else:
-                            new_tokens.append(tokens[i])
-                            i += 1
-
-                    new_pieces.append(new_tokens)
-
-                new_words.append(new_pieces)
-
-            self.merges.append(most_frequent)
-            words = new_words
+            words = [self.merge_pair(tokens, best) for tokens in words]
+            self.merges.append(best)
 
         return self.merges
 
@@ -106,23 +76,8 @@ class BPETokenizer:
         for piece in self.pre_tokenize(text):
             tokens = list(piece)
 
-            for left, right in self.merges:
-                new_tokens = []
-                i = 0
-
-                while i < len(tokens):
-                    if (
-                            i + 1 < len(tokens)
-                            and (tokens[i], tokens[i + 1]) == (left, right)
-                    ):
-                        new_tokens.append(left + right)
-                        i += 2
-                    else:
-                        new_tokens.append(tokens[i])
-                        i += 1
-
-                tokens = new_tokens
-
+            for pair in self.merges:
+                tokens = self.merge_pair(tokens, pair)
             result.extend(tokens)
 
         return result
