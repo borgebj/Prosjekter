@@ -21,8 +21,11 @@ vocabulary = {
 }
 
 # BPE merger ord som forekommer ofte i subwords
-"the cat sat"
-→ ["the", "cat", "s", "at"]   # eks tokens
+"The cat was happy. The cat was unhappy."
+→ ["the", "cat", "was", "happy", ".", "the", "cat", "was", "un", "happy", "."]
+
+# Unike tokens (nytt vocabulary)
+→ ["the", "cat", "was", "happy", ".", "un"]
 ```
 
 ## Block 2 – Embeddings
