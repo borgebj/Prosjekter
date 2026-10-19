@@ -92,10 +92,23 @@ test_tokenizer(
 
 # =====================================
 # BPE TOKENIZATION
+
+corpus = [
+    "The cat was happy.",
+    "The cats were unhappy.",
+    "The dog was happier.",
+    "The dogs were unhappier.",
+    "The cat was playing.",
+    "The cats were played with.",
+]
+
 print_header("BPE TOKENIZATION")
+print("BPE Corpus:\n")
+print(corpus)
 
 bpe = BPETokenizer()
-merges = bpe.train(corpus, num_merges=20)
+num_merges = 25
+merges = bpe.train(corpus, num_merges)
 
 # Tokenize each sentence separately, then combine the tokens.
 tokens = []
@@ -117,7 +130,8 @@ print("Encoded:", encoded)
 print(
     f"\nStatistics: {len(tokens)} tokens, "
     f"{len(vocab)} vocabulary entries, "
-    f"{len(inputs)} sequences"
+    f"{len(inputs)} sequences, "
+    f"{num_merges} merges"
 )
 
 
