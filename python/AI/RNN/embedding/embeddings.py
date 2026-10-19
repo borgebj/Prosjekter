@@ -12,7 +12,7 @@ def one_hot_encode(token_id, vocab_size):
 
 
 def create_embedding_matrix(vocab_size, embedding_dim):
-    """Creates a random embedding matrix"""
+    """Creates a _random_ embedding matrix"""
 
     # creates a random matrix
     embedding_matrix = np.random.uniform(

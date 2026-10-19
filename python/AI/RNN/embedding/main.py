@@ -1,19 +1,21 @@
+
 from AI.RNN.tokenization.tokenizer import (
     word_tokenize,
-    create_vocabulary
+    create_vocabulary,
 )
 from embeddings import (
     one_hot_encode,
     create_embedding_matrix,
-    positional_encoding
+    positional_encoding,
 )
 import numpy as np
+
 
 np.set_printoptions(
     precision=3,
     suppress=True,
     floatmode="fixed",
-    sign="+"
+    sign="+",
 )
 
 
@@ -21,7 +23,7 @@ np.set_printoptions(
 # Utility
 # =====================================
 
-num_headers = 1
+num_headers = 0
 
 
 def print_header(text):
@@ -42,22 +44,27 @@ def cosine_similarity(a, b):
 
 
 # =====================================
-# Setup
+# Setup: Reuse Block 1
 # =====================================
 
-print_header("SETUP")
+print_header("TOKENIZATION AND VOCABULARY")
 
 text = "The cat sat on the mat."
 
+# Block 1: Convert text into tokens and IDs.
 tokens = word_tokenize(text)
 vocab, token_to_id, id_to_token = create_vocabulary(tokens)
+
+token_ids = [token_to_id[token] for token in tokens]
 vocab_size = len(vocab)
 
 print(f"Text:       {text}")
 print(f"Tokens:     {tokens}")
 print(f"Vocabulary: {vocab}")
-print(f"Token IDs:  {token_to_id}")
+print(f"Token IDs:  {token_ids}")
 print(f"Vocab size: {vocab_size}")
+
+# Block 2 starts here: Convert token IDs into embeddings.
 
 
 # =====================================
@@ -66,15 +73,17 @@ print(f"Vocab size: {vocab_size}")
 
 print_header("ONE-HOT ENCODING")
 
-print("Each token is represented by a vector with one 1 and zeros everywhere else.\n")
+print("Each token is represented by a vector")
+print("containing one 1 and zeros everywhere else.\n")
 
 for token in vocab:
     token_id = token_to_id[token]
     vector = one_hot_encode(token_id, vocab_size)
 
-    print(f"{token:>5} -> {vector}")
+    print(f"{token:>5} (ID {token_id}) -> {vector.astype(int)}")
 
-print("\nOne-hot vectors identify tokens, but do not represent semantic meaning.")
+print("\nOne-hot vectors identify tokens, but do not")
+print("represent semantic relationships between them.")
 
 
 # =====================================
@@ -83,11 +92,13 @@ print("\nOne-hot vectors identify tokens, but do not represent semantic meaning.
 
 print_header("THE EMBEDDING MATRIX")
 
+print("NB! values are initially random\nTraining adjusts them to help learn representations.\n")
+
 embedding_dim = 4
 
 embedding_matrix = create_embedding_matrix(
     vocab_size,
-    embedding_dim
+    embedding_dim,
 )
 
 print("Embedding matrix E:")
@@ -97,10 +108,8 @@ print(f"\nShape: {embedding_matrix.shape}")
 print(f"Vocabulary size (V): {vocab_size}")
 print(f"Embedding dimension (d): {embedding_dim}")
 
-print("\nMathematical representation:")
-print(f"E has shape ({vocab_size}, {embedding_dim})")
-
-print("\nEach row represents one token.")
+print(f"\nE has shape ({vocab_size}, {embedding_dim}).")
+print("Each row represents one token.")
 print("Each column represents one embedding dimension.")
 
 
@@ -110,13 +119,13 @@ print("Each column represents one embedding dimension.")
 
 print_header("TOKEN-TO-EMBEDDING LOOKUP")
 
-for token in vocab:
-    token_id = token_to_id[token]
+for token, token_id in zip(tokens, token_ids):
     embedding = embedding_matrix[token_id]
 
     print(f"{token:>5} (ID {token_id}) -> {embedding}")
 
-print("\nA token ID selects one row from E.")
+print("\nEach token ID selects a row from E.")
+print("Repeated tokens use the same embedding row.")
 
 
 # =====================================
@@ -128,18 +137,18 @@ print_header("HOW EMBEDDING LOOKUP WORKS")
 token = "cat"
 token_id = token_to_id[token]
 
-# Method 1: One-hot vector multiplied by E
-cat_one_hot = one_hot_encode(token_id, vocab_size)
-embedding_from_one_hot = cat_one_hot @ embedding_matrix
+# Method 1: Multiply the one-hot vector by E.
+token_one_hot = one_hot_encode(token_id, vocab_size)
+embedding_from_one_hot = token_one_hot @ embedding_matrix
 
-# Method 2: Direct row lookup
+# Method 2: Select the corresponding row directly.
 embedding_from_lookup = embedding_matrix[token_id]
 
 print(f"Token: {token}")
 print(f"Token ID: {token_id}")
 
 print("\nOne-hot vector:")
-print(cat_one_hot)
+print(token_one_hot)
 
 print("\nOne-hot @ embedding matrix:")
 print(embedding_from_one_hot)
@@ -150,33 +159,32 @@ print(embedding_from_lookup)
 print("\nAre the results equal?")
 print(np.allclose(
     embedding_from_one_hot,
-    embedding_from_lookup
+    embedding_from_lookup,
 ))
 
-print("\nDirect lookup is more efficient.")
-print("One-hot multiplication illustrates the underlying mathematics.")
+print("\nDirect lookup avoids constructing a one-hot vector.")
+print("Both methods produce the same embedding.")
 
 
 # =====================================
-# Experiment 5: Embeddings are initially random
+# Experiment 5: Initially random embeddings
 # =====================================
 
-print_header("INITIAL EMBEDDINGS HAVE NO GUARANTEED MEANING")
+print_header("EMBEDDINGS BEFORE TRAINING")
 
 cat_embedding = embedding_matrix[token_to_id["cat"]]
 mat_embedding = embedding_matrix[token_to_id["mat"]]
 
 similarity = cosine_similarity(
     cat_embedding,
-    mat_embedding
+    mat_embedding,
 )
 
-print("Initial cosine similarity:")
-print(f"cat vs mat: {similarity:+.4f}")
+print(f"Initial cosine similarity (cat vs mat): {similarity:+.4f}")
 
-print("\nThese embeddings were randomly initialized.")
-print("Their values do not automatically encode meaning.")
-print("Training must adjust the vectors using a learning objective.")
+print("\nThe embeddings were randomly initialized.")
+print("Their values do not yet encode learned semantic meaning.")
+print("Training adjusts them using a learning objective.")
 
 
 # =====================================
@@ -186,45 +194,57 @@ print("Training must adjust the vectors using a learning objective.")
 print_header("EMBEDDINGS IN A SEQUENCE")
 
 sentence = ["the", "cat", "sat"]
+sentence_ids = [token_to_id[token] for token in sentence]
 
-for position, token in enumerate(sentence):
-    token_id = token_to_id[token]
-    embedding = embedding_matrix[token_id]
+# Retrieve one embedding for each token, preserving order.
+embedding_sequence = embedding_matrix[sentence_ids]
 
-    print(f"Position {position}: {token}")
+for position, (token, token_id, embedding) in enumerate(
+    zip(sentence, sentence_ids, embedding_sequence)
+):
+    print(f"Position {position}:\t'{token}'\t(ID {token_id})")
     print(f"{'Embedding:':<12}{embedding}\n")
 
-print("Each token has its own embedding.")
-print("The embedding lookup alone does not encode position.")
+print(f"Embedding sequence shape: {embedding_sequence.shape}")
+print("(Sequence length, embedding dimension)")
+
+print("\nThe lookup preserves token order, but the individual")
+print("embedding vectors do not explicitly encode position.")
 
 
 # =====================================
 # Experiment 7: Positional encoding
 # =====================================
 
-print_header("POSITIONAL ENCODING (TRANSFORMER PREVIEW)")
+print_header("POSITIONAL ENCODING: TRANSFORMER PREVIEW")
 
-# go through tokens, get position vector and token vector
-for position, token in enumerate(sentence):
-    token_id = token_to_id[token]
+print("Positional encoding adds information about token position.")
+print("This example uses the same sentence and embedding matrix.\n")
 
-    # token vector
+for position, (token, token_id) in enumerate(
+    zip(sentence, sentence_ids)
+):
+    # Token vector
     embedding = embedding_matrix[token_id]
 
-    # position vector
+    # Position vector
     position_vector = positional_encoding(
         position,
-        embedding_dim
+        embedding_dim,
     )
 
-    # combines both into ONE vector
+    # Combine token and position information.
     combined = embedding + position_vector
 
-    print(f"Token: {token} (position {position})")
+    print(f"Token:\t'{token}'\t(position {position})")
     print(f"{'Embedding:':<12}{embedding}")
-    print(f"{'Position:':<12}{position_vector}  <-- sin/cos(pos / 10000^(2i/d))")
+    print(f"{'Position:':<12}{position_vector}")
     print(f"{'Combined:':<12}{combined}\n")
 
-print("Even dimensions use sin(); odd dimensions use cos() --> [even, odd, even, odd, ...]")
-print("Adding positional encoding gives the embedding information about token position.")
-print("RNNs normally represent sequence order through recurrent hidden states.")
+print("The position vector is added to the token embedding.")
+print("Sinusoidal positional encoding uses sine and cosine functions.")
+
+print("\nImportant distinction:")
+print("Transformers commonly use positional encodings.")
+print("RNNs normally represent sequence order through recurrent")
+print("hidden states rather than requiring this positional encoding.")
