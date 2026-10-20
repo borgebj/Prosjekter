@@ -91,17 +91,20 @@ class Context:
 
 def load_corpus() -> list[str]:
     text = CORPUS_PATH.read_text(encoding="utf-8-sig")
+
+    if ACTIVE_CONFIG == "tinystories":
+        entries = text.split("<|STORY|>")
+    else:
+        entries = text.splitlines()
+
     corpus = [
-        re.sub(r"\s+", " ", line).strip()
-        for line in text.splitlines()
-        if line.strip()
+        re.sub(r"\s+", " ", entry).strip()
+        for entry in entries
+        if entry.strip()
     ]
 
     if MAX_ROWS is not None:
         corpus = corpus[:MAX_ROWS]
-
-    if not corpus:
-        raise ValueError(f"No text found in {CORPUS_PATH}")
 
     return corpus
 
@@ -236,8 +239,7 @@ def training_examples(ctx: Context) -> None:
     """From sentences to training examples
 
     -> Every prefix of a sentence is an input, and the token that follows it is the target.
-    -> The input tokens are looked up in the embedding matrix,
-       and the model learns to predict the target from them.
+    -> The input tokens are looked up in the embedding matrix, and the model learns to predict the target from them.
     """
     tokens, ids = ctx.train_tokenized[0], ctx.train_ids[0]
 
