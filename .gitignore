@@ -21,3 +21,7 @@ out
 *.sqlite
 *.ptdata/
 data/
+
+# Trained model checkpoints
+*.npz
+*.npy

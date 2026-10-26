@@ -111,6 +111,9 @@ class RNN:
         dWh = np.zeros_like(self.Whh)
         db = np.zeros_like(self.bh)
 
+        # one input gradient per timestep
+        dx_sequence = np.zeros_like(self.x_sequence)
+
         h_initial = np.zeros(self.hidden_size)
 
         # Backpropagation Through Time (BPTT).
@@ -126,6 +129,9 @@ class RNN:
             # Derivative of tanh.
             dz = dh * (1.0 - h ** 2)
 
+            # gradient for this input embedding
+            dx_sequence[t] = self.Wxh.T @ dz
+
             # gradient at this time-step
             dWx += np.outer(dz, x)
             dWh += np.outer(dz, h_previous)
@@ -135,7 +141,7 @@ class RNN:
             dh = self.Whh.T @ dz
 
         # Gradient clipping limits the size of large updates.
-        gradients = [dWx, dWh, db, dWy, dby]
+        gradients = [dWx, dWh, db, dWy, dby, dx_sequence]
 
         # calculate size of all gradients
         grad_norm = np.sqrt(sum(np.sum(gradient ** 2) for gradient in gradients))
@@ -145,16 +151,19 @@ class RNN:
             scale = self.max_grad_norm / (grad_norm + 1e-12)
             gradients = [gradient * scale for gradient in gradients]
 
-        dWx, dWh, db, dWy, dby = gradients
+        dWx, dWh, db, dWy, dby, dx_sequence = gradients
 
         # SGD (Stochastic Gradient Descent):
         # - update weights using gradients from this training example to reduce loss.
-        self.Wxh -= self.lr * dWx
-        self.Whh -= self.lr * dWh
-        self.bh -= self.lr * db
+        self.Wxh -= self.lr * dWx       # weights input-hidden
+        self.Whh -= self.lr * dWh       # weights hidden-hidden
+        self.bh -= self.lr * db         # bias hidden
 
-        self.Why -= self.lr * dWy
-        self.by -= self.lr * dby
+        self.Why -= self.lr * dWy       # weights hidden-output
+        self.by -= self.lr * dby        # bias output
+
+        return dx_sequence
+
 
     def predict(self, x_sequence: np.ndarray) -> tuple[int, np.ndarray]:
         """Return the predicted class ID and its probability distribution."""
@@ -166,12 +175,14 @@ class RNN:
 
         return prediction_id, self.probabilities.copy()
 
+
     def compute_loss(self, target_id: int) -> float:
         """Calculate cross-entropy loss for the target class."""
         target_probability = self.probabilities[target_id]
         return float(-np.log(max(target_probability, 1e-12)))
 
-    def save_model(self, path=None, name="rnn_model"):
+
+    def save_model(self, path=None, name="rnn_model", silent=False):
         """Save the model's name, learned weights, and biases."""
         if path is None:
             path = Path("checkpoints") / f"{name}.npz"
@@ -194,10 +205,10 @@ class RNN:
             by=self.by,
         )
 
-        print(f"\nModel '{name}' saved to {path}")
+        if not silent: print(f"\nModel '{name}' saved to {path}")
 
     @classmethod
-    def load_model(cls, name="rnn_model", path=None):
+    def load_model(cls, name="rnn_model", path=None, silent=False):
         """Load a saved model by name or path."""
         if path is None:
             path = Path("checkpoints") / (name if name.endswith(".npz") else f"{name}.npz")
@@ -220,5 +231,5 @@ class RNN:
 
             model.name = str(data["name"]) if "name" in data else path.stem
 
-        print(f"\nModel '{model.name}' loaded from {path}")
+        if not silent: print(f"\nModel '{model.name}' loaded from {path}")
         return model

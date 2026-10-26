@@ -28,28 +28,45 @@ import numpy as np
 import random
 import re
 
+
 # =====================================
 # Settings
 # =====================================
 
-# What this run does: "train", "test" or "use"
-MODE = "use"
+# Run mode
+MODE = "train"  # "train", "test" or "use"
 
-# Shared hyperparameters
-SEED = 4
-EMBEDDING_DIM = 32
-HIDDEN_SIZE = 64
-LEARNING_RATE = 0.003
+# Model hyperparameters
+SEED = 100
+EMBEDDING_DIM = 64
+HIDDEN_SIZE = 128
+LEARNING_RATE = 0.005
+
+# Tokenizer hyperparameters
 NUM_MERGES = 200
-EPOCHS = 30
-LOG_EVERY = (EPOCHS // 8) or 1
-TRAIN_SPLIT = 0.8
+MAX_CONTEXT = 16
 
-GENERATED_TOKENS = 20
+# Training hyperparameters
+EPOCHS = 50
+LOG_EVERY = (EPOCHS // 8) or 1
+
+PATIENCE = 5
+MIN_DELTA = 0.001
+
+# Dataset split
+TRAIN_SPLIT = 0.7
+VALIDATION_SPLIT = 0.1
+# Remaining 20% is for testing.
+
+# Output settings
+GENERATED_TOKENS = 16
 SAMPLES = 3
 EXAMPLES_SHOWN = 5
 
+# =====================================
 # Dataset configurations
+# =====================================
+
 CONFIGS = {
     "tinystories": {
         "CORPUS_PATH": Path(__file__).with_name("tinystories.txt"),
@@ -66,14 +83,27 @@ CONFIGS = {
 }
 
 # Select dataset
-ACTIVE_CONFIG = "corpus"
-# ACTIVE_CONFIG = "tinystories"
+# ACTIVE_CONFIG = "corpus"
+ACTIVE_CONFIG = "tinystories"
+
+
+# =====================================
+# Paths and active dataset
+# =====================================
+
+CHECKPOINT_DIR = Path(__file__).with_name("checkpoints")
 
 _config = CONFIGS[ACTIVE_CONFIG]
+
 CORPUS_PATH = _config["CORPUS_PATH"]
 START_TEXT = _config["START_TEXT"]
 MAX_ROWS = _config["MAX_ROWS"]
 PREVIEW_LIMIT = _config["PREVIEW_LIMIT"]
+
+MODEL_NAME = f"{ACTIVE_CONFIG}_s{SEED}"
+
+MODEL_PATH = CHECKPOINT_DIR / f"{MODEL_NAME}.npz"
+EMBEDDING_PATH = CHECKPOINT_DIR / f"{MODEL_NAME}_emb.npy"
 
 showcase = Showcase()
 
@@ -86,18 +116,21 @@ showcase = Showcase()
 class Context:
     """Data shared by every experiment."""
     train_corpus: list[str]
+    validation_corpus: list[str]
     test_corpus: list[str]
     bpe: BPETokenizer
-    train_tokenized: list[list[str]]    # training sentences as tokens
-    vocab: list[str]                    # built from training tokens only
+    train_tokenized: list[list[str]]  # training sentences as tokens
+    vocab: list[str]  # built from training tokens only
     token_to_id: dict[str, int]
     id_to_token: dict[int, str]
-    unk_id: int                         # unseen tokens map to this ID
-    train_ids: list[list[int]]          # training sentences as IDs
+    unk_id: int  # unseen tokens map to this ID
+    train_ids: list[list[int]]  # training sentences as IDs
+    validation_ids: list[list[int]]
     test_ids: list[list[int]]
-    embedding_matrix: np.ndarray        # E: (vocab size, embedding dim), never updated here
-    model: RNN                          # model changed by the training experiment
-    train_examples: list                # [(embeddings of the input tokens, target ID), ...]
+    embedding_matrix: np.ndarray  # E: (vocab size, embedding dim), trainable
+    model: RNN  # model changed by the training experiment
+    train_examples: list  # [(input ID, target ID), ...]
+    validation_examples: list
     test_examples: list
 
 
@@ -121,6 +154,11 @@ def load_corpus() -> list[str]:
     return corpus
 
 
+def save_embeddings(embedding_matrix: np.ndarray) -> None:
+    CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
+    np.save(EMBEDDING_PATH, embedding_matrix)
+
+
 def encode_sentences(sentences, token_to_id, unk_id) -> list[list[int]]:
     """Converts tokens to IDs, using the unknown ID for unseen tokens."""
     return [
@@ -129,24 +167,25 @@ def encode_sentences(sentences, token_to_id, unk_id) -> list[list[int]]:
     ]
 
 
-def make_examples(id_sequences, embedding_matrix, MAX_CONTEXT=16) -> list:
-    """Create next-token examples using at most MAX_CONTEXT previous tokens."""
+def make_examples(id_sequences):
+    """Create next-token examples using token IDs."""
     return [
-        (embedding_matrix[ids[max(0, i - MAX_CONTEXT):i]], ids[i])
+        (ids[max(0, i - MAX_CONTEXT):i], ids[i])
         for ids in id_sequences
         for i in range(1, len(ids))
     ]
 
 
-def evaluate(model: RNN, examples: list) -> tuple[float, float]:
-    """Returns (average loss, accuracy). Forward passes only, no weight updates."""
+def evaluate(ctx: Context, examples: list) -> tuple[float, float]:
+    """Returns average loss and accuracy without updating parameters."""
     if not examples:
         return float("nan"), float("nan")
 
     total_loss, correct = 0.0, 0
-    for x_sequence, target_id in examples:
-        prediction_id, _ = model.predict(x_sequence)
-        total_loss += model.compute_loss(target_id)
+    for input_ids, target_id in examples:
+        x_sequence = ctx.embedding_matrix[input_ids]
+        prediction_id, _ = ctx.model.predict(x_sequence)
+        total_loss += ctx.model.compute_loss(target_id)
         correct += prediction_id == target_id
 
     return total_loss / len(examples), correct / len(examples)
@@ -158,7 +197,11 @@ def generate(ctx: Context, start_text: str, num_tokens: int, rng=None) -> str:
     ids = [ctx.token_to_id.get(token, ctx.unk_id) for token in tokens]
 
     for _ in range(num_tokens):
-        prediction_id, probabilities = ctx.model.predict(ctx.embedding_matrix[ids])
+        context_ids = ids[-MAX_CONTEXT:]
+        x_sequence = ctx.embedding_matrix[context_ids]
+
+        prediction_id, probabilities = ctx.model.predict(x_sequence)
+
         if rng is not None:
             p = np.asarray(probabilities, dtype=np.float64)
             prediction_id = rng.choice(len(p), p=p / p.sum())
@@ -178,8 +221,13 @@ def build_context(new_model: bool) -> Context:
     # Load and split the corpus.
     corpus = load_corpus()
     random.shuffle(corpus)
-    split_index = int(len(corpus) * TRAIN_SPLIT)
-    train_corpus, test_corpus = corpus[:split_index], corpus[split_index:]
+
+    train_end = int(len(corpus) * TRAIN_SPLIT)
+    val_end = int(len(corpus) * (TRAIN_SPLIT + VALIDATION_SPLIT))
+
+    train_corpus = corpus[:train_end]
+    validation_corpus = corpus[train_end:val_end]
+    test_corpus = corpus[val_end:]
 
     # Block 1: tokenizer and vocabulary come from the training data only,
     # so the test sentences stay truly unseen.
@@ -187,6 +235,7 @@ def build_context(new_model: bool) -> Context:
     bpe.train(train_corpus, num_merges=NUM_MERGES)
 
     train_tokenized = tokenize_corpus(train_corpus, bpe)
+    validation_tokenized = tokenize_corpus(validation_corpus, bpe)
     test_tokenized = tokenize_corpus(test_corpus, bpe)
 
     train_tokens = [token for sentence in train_tokenized for token in sentence]
@@ -194,13 +243,22 @@ def build_context(new_model: bool) -> Context:
     unk_id = token_to_id["<UNK>"]
 
     train_ids = encode_sentences(train_tokenized, token_to_id, unk_id)
+    validation_ids = encode_sentences(validation_tokenized, token_to_id, unk_id)
     test_ids = encode_sentences(test_tokenized, token_to_id, unk_id)
 
     # Block 2: embeddings
-    embedding_matrix = np.asarray(
-        create_embedding_matrix(len(vocab), EMBEDDING_DIM),
-        dtype=np.float64,
-    )
+    if new_model:
+        embedding_matrix = np.asarray(
+            create_embedding_matrix(len(vocab), EMBEDDING_DIM),
+            dtype=np.float64,
+        )
+    else:
+        embedding_matrix = np.load(EMBEDDING_PATH, allow_pickle=False)
+        if embedding_matrix.shape != (len(vocab), EMBEDDING_DIM):
+            raise ValueError(
+                "Saved embedding matrix does not match the current vocabulary "
+                "or embedding dimension."
+            )
 
     # Block 3: model
     if new_model:
@@ -211,10 +269,11 @@ def build_context(new_model: bool) -> Context:
             lr=LEARNING_RATE,
         )
     else:
-        model = RNN.load_model()
+        model = RNN.load_model(name=MODEL_NAME)
 
-    train_examples = make_examples(train_ids, embedding_matrix)
-    test_examples = make_examples(test_ids, embedding_matrix)
+    train_examples = make_examples(train_ids)
+    validation_examples = make_examples(validation_ids)
+    test_examples = make_examples(test_ids)
 
     if not train_examples:
         raise ValueError(
@@ -223,8 +282,9 @@ def build_context(new_model: bool) -> Context:
         )
 
     return Context(
-        train_corpus, test_corpus, bpe, train_tokenized, vocab, token_to_id, id_to_token, unk_id,
-        train_ids, test_ids, embedding_matrix, model, train_examples, test_examples,
+        train_corpus, validation_corpus, test_corpus, bpe, train_tokenized, vocab, token_to_id, id_to_token, unk_id,
+        train_ids, validation_ids, test_ids, embedding_matrix, model, train_examples, validation_examples,
+        test_examples,
     )
 
 
@@ -237,12 +297,13 @@ def show_setup(ctx: Context) -> None:
         print(f"  {sentence}")
 
     print(f"\n{bolden('Training sentences')}: {len(ctx.train_corpus)}")
-    print(f"{bolden('Test sentences')}:     {len(ctx.test_corpus)}")
-    print(f"{bolden('BPE merge rules')}:    {len(ctx.bpe.merges)}")
-    print(f"{bolden('Vocabulary size')}:    {len(ctx.vocab)}")
-    print(f"{bolden('Embedding dim')}:      {EMBEDDING_DIM}")
-    print(f"{bolden('Hidden size')}:        {HIDDEN_SIZE}")
-    print(f"{bolden('Learning rate')}:      {LEARNING_RATE}")
+    print(f"{bolden('Test sentences')}:       {len(ctx.test_corpus)}")
+    print(f"{bolden('Validation sentences')}: {len(ctx.validation_corpus)}")
+    print(f"{bolden('BPE merge rules')}:      {len(ctx.bpe.merges)}")
+    print(f"{bolden('Vocabulary size')}:      {len(ctx.vocab)}")
+    print(f"{bolden('Embedding dim')}:        {EMBEDDING_DIM}")
+    print(f"{bolden('Hidden size')}:          {HIDDEN_SIZE}")
+    print(f"{bolden('Learning rate')}:        {LEARNING_RATE}")
     print(f"\n{bolden('Vocabulary')} (first 15): {ctx.vocab[:15]}{' ...' if len(ctx.vocab) > 15 else ''}")
 
 
@@ -265,11 +326,11 @@ def training_examples(ctx: Context) -> None:
 
     last = min(len(tokens), EXAMPLES_SHOWN + 1)
     for i in range(1, last):
-        print(f"  {' '.join(tokens[:i])!r:<40} -> {tokens[i]!r}")
+        print(f"  {' '.join(tokens[:i])!r:<35} -> {tokens[i]!r}")
     if last < len(tokens):
         print("  ...")
 
-    print(f"\n{len(ctx.train_corpus)} training sentences  ->  {len(ctx.train_examples)} examples")
+    print(f"\n{len(ctx.train_corpus)} training sentences   ->  {len(ctx.train_examples)} examples")
     print(f"{len(ctx.test_corpus)} test sentences       ->  {len(ctx.test_examples)} examples")
 
     takeaway(
@@ -282,37 +343,76 @@ def training_examples(ctx: Context) -> None:
 def training(ctx: Context) -> None:
     """Training
 
-    -> One epoch is one pass over all training examples, in a new random order.
-    -> For each example the model predicts the next token, measures the loss, and updates its weights.
-    -> The test loss is measured on held-out sentences without updating anything.
-    """
+        -> One epoch is one pass over all training examples, in a new random order.
+        -> For each example the model predicts the next token, measures the loss, and updates its weights.
+        -> Validation loss is used for early stopping and checkpoint selection.
+        """
     print("\n", bolden(("=" * 15) + "STARTING TRAINING" + ("=" * 15)))
 
     model = ctx.model
     examples = list(ctx.train_examples)
 
+    best_validation_loss = float("inf")
+    epochs_no_improvement = 0
+
     for epoch in range(1, EPOCHS + 1):
         random.shuffle(examples)
         total_loss = 0.0
 
-        for x_sequence, target_id in examples:
+        # forward + backward
+        for input_ids, target_id in examples:
+
+            # 1. look up current embeddings
+            x_sequence = ctx.embedding_matrix[input_ids]
+
+            # 2. forward + loss
             model.forward(x_sequence)
-            total_loss += model.compute_loss(target_id)  # loss before the update
-            model.backward(target_id)
+            total_loss += model.compute_loss(target_id)  # track loss
+
+            # 3. calculate gradients and update RNN (backward)
+            dx_sequence = model.backward(target_id)
+
+            # 4. update embeddings
+            embedding_gradients = np.zeros_like(ctx.embedding_matrix)
+
+            for token_id, dx in zip(input_ids, dx_sequence):
+                embedding_gradients[token_id] += dx
+
+            ctx.embedding_matrix -= model.lr * embedding_gradients
+
+        train_loss = total_loss / len(examples)
+        validation_loss, _ = evaluate(ctx, ctx.validation_examples)
+
+        if validation_loss < best_validation_loss - MIN_DELTA:
+            best_validation_loss = validation_loss
+            epochs_no_improvement = 0
+
+            model.save_model(name=MODEL_NAME, silent=True)
+            save_embeddings(ctx.embedding_matrix)
+        else:
+            epochs_no_improvement += 1
 
         if epoch == 1 or epoch % LOG_EVERY == 0:
-            train_loss = total_loss / len(examples)
-            test_loss, _ = evaluate(model, ctx.test_examples)
             print(
                 f"{bolden('Epoch')} {epoch:3d}/{EPOCHS}"
                 f"  |  {bolden('train')} loss: {train_loss:.4f}"
-                f"  |  {bolden('test')} loss: {test_loss:.4f}"
+                f"  |  {bolden('validation')} loss: {validation_loss:.4f}"
             )
+
+        if epochs_no_improvement >= PATIENCE:
+            print(
+                f"Early stopping at epoch {epoch}.\n"
+                f"Best validation loss: {best_validation_loss:.4f}"
+            )
+            break
+
+    ctx.model = RNN.load_model(name=MODEL_NAME)
+    ctx.embedding_matrix = np.load(EMBEDDING_PATH, allow_pickle=False)
 
     takeaway(
         "Falling train loss means the model fits the training data.",
-        "If the test loss stops falling or rises while the train loss keeps falling, the model is overfitting.",
-        "Only the RNN weights were updated. The embedding matrix kept its random initial values.",
+        "If validation loss stops falling or rises while train loss keeps falling, the model may be overfitting.",
+        "Both the RNN parameters and the embedding matrix are updated during training.",
     )
 
 
@@ -324,8 +424,8 @@ def evaluation(ctx: Context) -> None:
     -> Perplexity is exp(loss): roughly how many tokens the model is choosing between at each step.
     """
     vocab_size = len(ctx.vocab)
-    train_loss, train_accuracy = evaluate(ctx.model, ctx.train_examples)
-    test_loss, test_accuracy = evaluate(ctx.model, ctx.test_examples)
+    train_loss, train_accuracy = evaluate(ctx, ctx.train_examples)
+    test_loss, test_accuracy = evaluate(ctx, ctx.test_examples)
 
     rows = [
         ("random guess", np.log(vocab_size), 1 / vocab_size),
@@ -393,9 +493,6 @@ def main():
 
     for experiment in EXPERIMENTS[MODE]:
         experiment(ctx)
-
-    if MODE == "train":
-        ctx.model.save_model()
 
 
 if __name__ == "__main__":
