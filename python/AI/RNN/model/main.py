@@ -68,9 +68,9 @@ def forward_steps(model: RNN, input_tokens: list[str], x_sequence: np.ndarray) -
     steps = []
 
     for token, x in zip(input_tokens, x_sequence):
-        input_part = model.W_x @ x
-        hidden_part = model.W_h @ h
-        pre_activation = input_part + hidden_part + model.b
+        input_part = model.Wxh @ x
+        hidden_part = model.Whh @ h
+        pre_activation = input_part + hidden_part + model.bh
         h = np.tanh(pre_activation)
         steps.append(Step(token, x, input_part, hidden_part, pre_activation, h))
 

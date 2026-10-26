@@ -1,3 +1,4 @@
+from pathlib import Path
 import numpy as np
 from typing import Optional
 
@@ -47,13 +48,13 @@ class RNN:
         self.max_grad_norm = max_grad_norm
 
         # Input-to-hidden and hidden-to-hidden weights.
-        self.W_x = xavier_init(input_size, hidden_size)
-        self.W_h = xavier_init(hidden_size, hidden_size)
-        self.b = np.zeros(hidden_size)
+        self.Wxh = xavier_init(input_size, hidden_size)
+        self.Whh = xavier_init(hidden_size, hidden_size)
+        self.bh = np.zeros(hidden_size)
 
         # Hidden-to-output weights and output bias.
-        self.W_y = xavier_init(hidden_size, output_size)
-        self.b_y = np.zeros(output_size)
+        self.Why = xavier_init(hidden_size, output_size)
+        self.by = np.zeros(output_size)
 
         # Cache values from the most recent forward pass for BPTT.
         self.x_sequence = None
@@ -67,42 +68,29 @@ class RNN:
         x_sequence = np.asarray(x_sequence, dtype=np.float64)
         self.x_sequence = x_sequence.copy()
 
+        # initial hidden state (0)
         h = np.zeros(self.hidden_size)
+
         hidden_states = []
 
         # Process each input vector in order.
         for x in self.x_sequence:
-            z = self.W_x @ x + self.W_h @ h + self.b
+            z = self.Wxh @ x + self.Whh @ h + self.bh
             h = np.tanh(z)
             hidden_states.append(h.copy())
 
         self.hidden_states = np.asarray(hidden_states)
 
-        # Generate output logits from the final hidden state.
+        # logits from final hidden state
         final_hidden_state = self.hidden_states[-1]
-        self.output_scores = self.W_y @ final_hidden_state + self.b_y
 
+        # pre-activation (z)
+        self.output_scores = (self.Why @ final_hidden_state) + self.by
+
+        # activation (a)
         self.probabilities = softmax(self.output_scores)
 
         return self.output_scores.copy()
-
-    def predict(
-            self,
-            x_sequence: np.ndarray,
-    ) -> tuple[int, np.ndarray]:
-        """Return the predicted class ID and its probability distribution."""
-
-        self.forward(x_sequence)
-
-        prediction_id = int(np.argmax(self.probabilities))
-
-        return prediction_id, self.probabilities.copy()
-
-    def compute_loss(self, target_id: int) -> float:
-        """Calculate cross-entropy loss for the target class."""
-
-        target_probability = self.probabilities[target_id]
-        return float(-np.log(max(target_probability, 1e-12)))
 
     def backward(self, target_id: int) -> None:
         """Calculate gradients using BPTT and update model parameters."""
@@ -111,17 +99,17 @@ class RNN:
         d_scores = self.probabilities.copy()
         d_scores[target_id] -= 1.0
 
+        # 2. calculates gradient for output-layer
         final_hidden_state = self.hidden_states[-1]
-
-        dW_y = np.outer(d_scores, final_hidden_state)
-        db_y = d_scores.copy()
+        dWy = np.outer(d_scores, final_hidden_state)
+        dby = d_scores.copy()
 
         # Propagate output error into the final hidden state.
-        dh = self.W_y.T @ d_scores
+        dh = self.Why.T @ d_scores
 
-        dW_x = np.zeros_like(self.W_x)
-        dW_h = np.zeros_like(self.W_h)
-        db = np.zeros_like(self.b)
+        dWx = np.zeros_like(self.Wxh)
+        dWh = np.zeros_like(self.Whh)
+        db = np.zeros_like(self.bh)
 
         h_initial = np.zeros(self.hidden_size)
 
@@ -138,34 +126,99 @@ class RNN:
             # Derivative of tanh.
             dz = dh * (1.0 - h ** 2)
 
-            dW_x += np.outer(dz, x)
-            dW_h += np.outer(dz, h_previous)
+            # gradient at this time-step
+            dWx += np.outer(dz, x)
+            dWh += np.outer(dz, h_previous)
             db += dz
 
             # Propagate error to the previous hidden state.
-            dh = self.W_h.T @ dz
+            dh = self.Whh.T @ dz
 
         # Gradient clipping limits the size of large updates.
-        gradients = [dW_x, dW_h, db, dW_y, db_y]
+        gradients = [dWx, dWh, db, dWy, dby]
 
-        grad_norm = np.sqrt(
-            sum(np.sum(gradient ** 2) for gradient in gradients)
-        )
+        # calculate size of all gradients
+        grad_norm = np.sqrt(sum(np.sum(gradient ** 2) for gradient in gradients))
 
-        if (
-                self.max_grad_norm is not None
-                and grad_norm > self.max_grad_norm
-        ):
+        # limits gradient size based on scale and largest size
+        if self.max_grad_norm is not None and grad_norm > self.max_grad_norm:
             scale = self.max_grad_norm / (grad_norm + 1e-12)
             gradients = [gradient * scale for gradient in gradients]
 
-        dW_x, dW_h, db, dW_y, db_y = gradients
+        dWx, dWh, db, dWy, dby = gradients
 
-        # SGD (Stochastic Gradient Descent): update weights using
-        # the gradients from this training example to reduce loss.
-        self.W_x -= self.lr * dW_x
-        self.W_h -= self.lr * dW_h
-        self.b -= self.lr * db
+        # SGD (Stochastic Gradient Descent):
+        # - update weights using gradients from this training example to reduce loss.
+        self.Wxh -= self.lr * dWx
+        self.Whh -= self.lr * dWh
+        self.bh -= self.lr * db
 
-        self.W_y -= self.lr * dW_y
-        self.b_y -= self.lr * db_y
+        self.Why -= self.lr * dWy
+        self.by -= self.lr * dby
+
+    def predict(self, x_sequence: np.ndarray) -> tuple[int, np.ndarray]:
+        """Return the predicted class ID and its probability distribution."""
+
+        self.forward(x_sequence)
+
+        # highest probability as int-id
+        prediction_id = int(np.argmax(self.probabilities))
+
+        return prediction_id, self.probabilities.copy()
+
+    def compute_loss(self, target_id: int) -> float:
+        """Calculate cross-entropy loss for the target class."""
+        target_probability = self.probabilities[target_id]
+        return float(-np.log(max(target_probability, 1e-12)))
+
+    def save_model(self, path=None, name="rnn_model"):
+        """Save the model's name, learned weights, and biases."""
+        if path is None:
+            path = Path("checkpoints") / f"{name}.npz"
+        else:
+            path = Path(path)
+
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+        np.savez(
+            path,
+            name=name,
+            input_size=self.input_size,
+            hidden_size=self.hidden_size,
+            output_size=self.output_size,
+            lr=self.lr,
+            Wxh=self.Wxh,
+            Whh=self.Whh,
+            Why=self.Why,
+            bh=self.bh,
+            by=self.by,
+        )
+
+        print(f"\nModel '{name}' saved to {path}")
+
+    @classmethod
+    def load_model(cls, name="rnn_model", path=None):
+        """Load a saved model by name or path."""
+        if path is None:
+            path = Path("checkpoints") / (name if name.endswith(".npz") else f"{name}.npz")
+        else:
+            path = Path(path)
+
+        with np.load(path, allow_pickle=False) as data:
+            model = cls(
+                input_size=int(data["input_size"]),
+                hidden_size=int(data["hidden_size"]),
+                output_size=int(data["output_size"]),
+                lr=float(data["lr"]),
+            )
+
+            model.Wxh = data["Wxh"].copy()
+            model.Whh = data["Whh"].copy()
+            model.Why = data["Why"].copy()
+            model.bh = data["bh"].copy()
+            model.by = data["by"].copy()
+
+            model.name = str(data["name"]) if "name" in data else path.stem
+
+        print(f"\nModel '{model.name}' loaded from {path}")
+        return model

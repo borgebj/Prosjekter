@@ -1,13 +1,18 @@
 """
 Block 4: Training showcase.
 
-Run this file to train the RNN on a small corpus and see how well it
-does on sentences it has never seen. The tokenizer (Block 1), embeddings
-(Block 2) and RNN (Block 3) are reused, and all experiments share one
-dataset and one model (see Context).
+Set MODE below, then run this file:
 
-Note: the model is created once and shared. The training experiment
-changes its weights, so it must run before evaluation and generation.
+    train -> build a new model, train it on the training corpus, evaluate it, save it
+    test  -> load the saved model and measure it on sentences it has never seen
+    use   -> load the saved model and generate text
+
+The tokenizer (Block 1), embeddings (Block 2) and RNN (Block 3) are reused,
+and all experiments share one dataset and one model (see Context).
+
+Run "train" first: "test" and "use" need the saved model. The tokenizer,
+vocabulary and embeddings are rebuilt from SEED and the corpus, so keep those
+(and the hyperparameters) unchanged between training and testing/using.
 """
 from AI.RNN.showcase import Showcase, header, takeaway, bolden
 from AI.RNN.model.rnn import RNN
@@ -23,6 +28,13 @@ import numpy as np
 import random
 import re
 
+# =====================================
+# Settings
+# =====================================
+
+# What this run does: "train", "test" or "use"
+MODE = "use"
+
 # Shared hyperparameters
 SEED = 4
 EMBEDDING_DIM = 32
@@ -33,7 +45,7 @@ EPOCHS = 30
 LOG_EVERY = (EPOCHS // 8) or 1
 TRAIN_SPLIT = 0.8
 
-GENERATED_TOKENS = 30
+GENERATED_TOKENS = 20
 SAMPLES = 3
 EXAMPLES_SHOWN = 5
 
@@ -54,7 +66,8 @@ CONFIGS = {
 }
 
 # Select dataset
-ACTIVE_CONFIG = "tinystories"  # "tinystories" or "corpus"
+ACTIVE_CONFIG = "corpus"
+# ACTIVE_CONFIG = "tinystories"
 
 _config = CONFIGS[ACTIVE_CONFIG]
 CORPUS_PATH = _config["CORPUS_PATH"]
@@ -83,10 +96,9 @@ class Context:
     train_ids: list[list[int]]          # training sentences as IDs
     test_ids: list[list[int]]
     embedding_matrix: np.ndarray        # E: (vocab size, embedding dim), never updated here
-    model: RNN                          # changed by the training experiment
+    model: RNN                          # model changed by the training experiment
     train_examples: list                # [(embeddings of the input tokens, target ID), ...]
     test_examples: list
-
 
 
 def load_corpus() -> list[str]:
@@ -109,7 +121,6 @@ def load_corpus() -> list[str]:
     return corpus
 
 
-
 def encode_sentences(sentences, token_to_id, unk_id) -> list[list[int]]:
     """Converts tokens to IDs, using the unknown ID for unseen tokens."""
     return [
@@ -125,7 +136,6 @@ def make_examples(id_sequences, embedding_matrix, MAX_CONTEXT=16) -> list:
         for ids in id_sequences
         for i in range(1, len(ids))
     ]
-
 
 
 def evaluate(model: RNN, examples: list) -> tuple[float, float]:
@@ -158,7 +168,9 @@ def generate(ctx: Context, start_text: str, num_tokens: int, rng=None) -> str:
     return "".join(ctx.id_to_token[i] for i in ids).replace("▁", " ").strip()
 
 
-def build_context() -> Context:
+def build_context(new_model: bool) -> Context:
+    """Builds the shared data. new_model=True starts from random weights,
+    otherwise the saved model is loaded."""
     # Make experiments reproducible.
     random.seed(SEED)
     np.random.seed(SEED)
@@ -191,12 +203,15 @@ def build_context() -> Context:
     )
 
     # Block 3: model
-    model = RNN(
-        input_size=EMBEDDING_DIM,
-        hidden_size=HIDDEN_SIZE,
-        output_size=len(vocab),
-        lr=LEARNING_RATE,
-    )
+    if new_model:
+        model = RNN(
+            input_size=EMBEDDING_DIM,
+            hidden_size=HIDDEN_SIZE,
+            output_size=len(vocab),
+            lr=LEARNING_RATE,
+        )
+    else:
+        model = RNN.load_model()
 
     train_examples = make_examples(train_ids, embedding_matrix)
     test_examples = make_examples(test_ids, embedding_matrix)
@@ -215,19 +230,20 @@ def build_context() -> Context:
 
 def show_setup(ctx: Context) -> None:
     header("SETUP: DATA, TOKENIZER AND MODEL (Blocks 1-3)")
+    print(f"Mode: '{MODE}'  |  Dataset: '{ACTIVE_CONFIG}'\n")
 
     print("Sample training sentences:")
     for sentence in ctx.train_corpus[:5]:
         print(f"  {sentence}")
 
-    print(f"\n{bolden("Training sentences")}: {len(ctx.train_corpus)}")
-    print(f"{bolden("Test sentences")}:     {len(ctx.test_corpus)}")
-    print(f"{bolden("BPE merge rules")}:    {len(ctx.bpe.merges)}")
-    print(f"{bolden("Vocabulary size")}:    {len(ctx.vocab)}")
-    print(f"{bolden("Embedding dim")}:      {EMBEDDING_DIM}")
-    print(f"{bolden("Hidden size")}:        {HIDDEN_SIZE}")
-    print(f"{bolden("Learning rate")}:      {LEARNING_RATE}")
-    print(f"\n{bolden("Vocabulary")} (first 15): {ctx.vocab[:15]}{' ...' if len(ctx.vocab) > 15 else ''}")
+    print(f"\n{bolden('Training sentences')}: {len(ctx.train_corpus)}")
+    print(f"{bolden('Test sentences')}:     {len(ctx.test_corpus)}")
+    print(f"{bolden('BPE merge rules')}:    {len(ctx.bpe.merges)}")
+    print(f"{bolden('Vocabulary size')}:    {len(ctx.vocab)}")
+    print(f"{bolden('Embedding dim')}:      {EMBEDDING_DIM}")
+    print(f"{bolden('Hidden size')}:        {HIDDEN_SIZE}")
+    print(f"{bolden('Learning rate')}:      {LEARNING_RATE}")
+    print(f"\n{bolden('Vocabulary')} (first 15): {ctx.vocab[:15]}{' ...' if len(ctx.vocab) > 15 else ''}")
 
 
 # =====================================
@@ -243,9 +259,9 @@ def training_examples(ctx: Context) -> None:
     """
     tokens, ids = ctx.train_tokenized[0], ctx.train_ids[0]
 
-    print(f"\n{bolden("Sentence")}:\n\t  '{ctx.train_corpus[0]}'")
-    print(f"\n{bolden("Tokens")}:\n\t   [{"  ".join(tokens[:PREVIEW_LIMIT])}]")
-    print(f"\n{bolden("IDs")}:\n\t   [{"  ".join(str(id) for id in ids[:PREVIEW_LIMIT])}]\n")
+    print(f"\n{bolden('Sentence')}:\n\t  '{ctx.train_corpus[0]}'")
+    print(f"\n{bolden('Tokens')}:\n\t   [{'  '.join(tokens[:PREVIEW_LIMIT])}]")
+    print(f"\n{bolden('IDs')}:\n\t   [{'  '.join(str(id) for id in ids[:PREVIEW_LIMIT])}]\n")
 
     last = min(len(tokens), EXAMPLES_SHOWN + 1)
     for i in range(1, last):
@@ -270,6 +286,8 @@ def training(ctx: Context) -> None:
     -> For each example the model predicts the next token, measures the loss, and updates its weights.
     -> The test loss is measured on held-out sentences without updating anything.
     """
+    print("\n", bolden(("=" * 15) + "STARTING TRAINING" + ("=" * 15)))
+
     model = ctx.model
     examples = list(ctx.train_examples)
 
@@ -279,7 +297,7 @@ def training(ctx: Context) -> None:
 
         for x_sequence, target_id in examples:
             model.forward(x_sequence)
-            total_loss += model.compute_loss(target_id)     # loss before the update
+            total_loss += model.compute_loss(target_id)  # loss before the update
             model.backward(target_id)
 
         if epoch == 1 or epoch % LOG_EVERY == 0:
@@ -340,16 +358,18 @@ def text_generation(ctx: Context) -> None:
     """
     rng = np.random.default_rng(SEED)
 
-    print(f"{bolden("Start text")}: '{START_TEXT}'\n")
-    print(f"  {bolden('greedy')}: {generate(ctx, START_TEXT, GENERATED_TOKENS)}")
+    print(f"{bolden('Start text')}: '{START_TEXT}'\n")
+
+    print(f"\t{bolden('greedy')}:     {generate(ctx, START_TEXT, GENERATED_TOKENS)}")
     for n in range(1, SAMPLES + 1):
         sampled = generate(ctx, START_TEXT, GENERATED_TOKENS, rng)
-        print(f"  {bolden(f'sample {n}')}): {sampled}")
+        print(f"\t{bolden(f'sample {n}')}:   {sampled}")
 
     takeaway(
         "Greedy decoding is deterministic and tends to fall into loops.",
         "Sampling varies from run to run. With little data and a tiny model, expect rough text either way.",
     )
+
 
 # TODO: trainable embeddings
 # TODO: start/end markers and better generation
@@ -359,10 +379,23 @@ def text_generation(ctx: Context) -> None:
 # Runner
 # =====================================
 
-def main() -> None:
-    ctx = build_context()
+# Which experiments each mode runs, in order.
+EXPERIMENTS = {
+    "train": [training_examples, training, evaluation],
+    "test": [evaluation],
+    "use": [text_generation],
+}
+
+
+def main():
+    ctx = build_context(new_model=(MODE == "train"))
     show_setup(ctx)
-    showcase.run(ctx)
+
+    for experiment in EXPERIMENTS[MODE]:
+        experiment(ctx)
+
+    if MODE == "train":
+        ctx.model.save_model()
 
 
 if __name__ == "__main__":
