@@ -67,15 +67,17 @@ EXAMPLES_SHOWN = 5
 # Dataset configurations
 # =====================================
 
+DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+
 CONFIGS = {
     "tinystories": {
-        "CORPUS_PATH": Path(__file__).with_name("tinystories.txt"),
+        "CORPUS_PATH": DATA_DIR / "tinystories.txt",
         "START_TEXT": "Once upon a time",
         "MAX_ROWS": 200,
         "PREVIEW_LIMIT": 30,
     },
     "corpus": {
-        "CORPUS_PATH": Path(__file__).with_name("corpus.txt"),
+        "CORPUS_PATH": DATA_DIR / "corpus.txt",
         "START_TEXT": "The dog",
         "MAX_ROWS": 1000,
         "PREVIEW_LIMIT": 30,
@@ -470,9 +472,6 @@ def text_generation(ctx: Context) -> None:
         "Sampling varies from run to run. With little data and a tiny model, expect rough text either way.",
     )
 
-
-# TODO: trainable embeddings
-# TODO: start/end markers and better generation
 
 
 # =====================================

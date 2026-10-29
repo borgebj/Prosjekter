@@ -1,5 +1,17 @@
+
+from pathlib import Path
 from datasets import load_dataset
 
+
+# =====================================
+# Paths
+
+DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+OUTPUT_PATH = DATA_DIR / "tinystories.txt"
+
+
+# =====================================
+# Text cleanup
 
 def repair_mojibake(text: str) -> str:
     """Repair common UTF-8 punctuation misread as Windows-1252."""
@@ -16,6 +28,7 @@ def repair_mojibake(text: str) -> str:
 
         if after < before:
             return repaired
+
     except (UnicodeEncodeError, UnicodeDecodeError):
         pass
 
@@ -35,27 +48,40 @@ def repair_mojibake(text: str) -> str:
     return text
 
 
-dataset = load_dataset(
-    "roneneldan/TinyStories",
-    split="train",
-    streaming=True,
-)
+# =====================================
+# Download TinyStories
 
-count = 0
+def main() -> None:
+    dataset = load_dataset(
+        "roneneldan/TinyStories",
+        split="train",
+        streaming=True,
+    )
 
-with open("tinystories.txt", "w", encoding="utf-8", newline="\n") as file:
-    for story in dataset.take(200):
-        text = story["text"].strip()
+    count = 0
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-        if not text:
-            continue
+    with OUTPUT_PATH.open(
+        "w",
+        encoding="utf-8",
+        newline="\n",
+    ) as file:
+        for story in dataset.take(200):
+            text = story["text"].strip()
 
-        text = repair_mojibake(text)
+            if not text:
+                continue
 
-        if count:
-            file.write("\n<|STORY|>\n")
+            text = repair_mojibake(text)
 
-        file.write(text)
-        count += 1
+            if count:
+                file.write("\n<|STORY|>\n")
 
-print(f"Saved {count} stories to tinystories.txt")
+            file.write(text)
+            count += 1
+
+    print(f"Saved {count} stories to {OUTPUT_PATH}")
+
+
+if __name__ == "__main__":
+    main()
