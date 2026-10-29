@@ -1,4 +1,3 @@
-
 from pathlib import Path
 import random
 
@@ -32,26 +31,23 @@ WEIGHT_DECAY = 0.0
 
 # Tokenization
 NUM_MERGES = 200
-MAX_CONTEXT = 16
+MAX_CONTEXT = 32
 
 # Data
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
-
-# CORPUS_PATH = DATA_DIR / "tinystories.txt"
 CORPUS_PATH = DATA_DIR / "corpus.txt"
 
 CORPUS_FORMAT = "lines"  # "separator", "lines", or "single"
 STORY_SEPARATOR = "<|STORY|>"
-MAX_STORIES = None  # None means use all documents.
+MAX_STORIES = None
 
 # Train / validation / test split
 TRAIN_FRACTION = 0.80
 VALIDATION_FRACTION = 0.10
-# Remaining fraction is used for testing.
 
 # Training
 BATCH_SIZE = 64
-EPOCHS = 30
+EPOCHS = 15
 
 # Text generation
 GENERATED_TOKENS = 30
@@ -249,91 +245,85 @@ def build_context():
 # =====================================
 
 def evaluate(model, data_loader, criterion):
-    """Return average loss and next-token accuracy."""
+    """Return average token loss and next-token accuracy."""
     model.eval()
 
     total_loss = 0.0
     total_correct = 0
-    total_examples = 0
+    total_tokens = 0
 
     with torch.no_grad():
-        for inputs, targets, lengths in data_loader:
-            logits = model(inputs, lengths)
-            loss = criterion(logits, targets)
+        for inputs, targets in data_loader:
+            logits = model(inputs)
 
-            batch_size = inputs.size(0)
+            batch_size, sequence_length, vocab_size = logits.shape
 
-            total_loss += loss.item() * batch_size
+            loss = criterion(
+                logits.reshape(-1, vocab_size),
+                targets.reshape(-1),
+            )
+
+            num_tokens = targets.numel()
+            total_loss += loss.item() * num_tokens
             total_correct += (
-                logits.argmax(dim=1) == targets
+                logits.argmax(dim=-1) == targets
             ).sum().item()
-            total_examples += batch_size
+            total_tokens += num_tokens
 
-    if total_examples == 0:
+    if total_tokens == 0:
         return float("nan"), float("nan")
 
-    average_loss = total_loss / total_examples
-    accuracy = total_correct / total_examples
+    return (
+        total_loss / total_tokens,
+        total_correct / total_tokens,
+    )
 
-    return average_loss, accuracy
 
-
-@showcase.experiment
-def next_token_demo(ctx):
-    model = ctx["model"]
-    train_loader = ctx["train_loader"]
-    validation_loader = ctx["validation_loader"]
-    test_loader = ctx["test_loader"]
-
+def train(
+    model,
+    train_loader,
+    validation_loader,
+    epochs,
+    lr,
+    weight_decay=0.0,
+):
+    """Train the model and restore the best validation checkpoint."""
     criterion = nn.CrossEntropyLoss()
 
     optimizer = torch.optim.Adam(
         model.parameters(),
-        lr=LEARNING_RATE,
-        weight_decay=WEIGHT_DECAY,
+        lr=lr,
+        weight_decay=weight_decay,
     )
-
-    header("PYTORCH RNN: NEXT-TOKEN PREDICTION")
-
-    print("Task: predict the next token in a text sequence.")
-    print("Corpus: {}".format(CORPUS_PATH.name))
-    print("Corpus format: {}".format(CORPUS_FORMAT))
-    print("Vocabulary size: {}".format(len(ctx["vocabulary"])))
-    print("Training examples: {}".format(len(train_loader.dataset)))
-    print(
-        "Validation examples: {}".format(
-            len(validation_loader.dataset)
-        )
-    )
-    print("Test examples: {}".format(len(test_loader.dataset)))
-    print("Batch size: {}".format(BATCH_SIZE))
-    print("Dropout: {}".format(DROPOUT))
-    print("LayerNorm: {}".format(USE_LAYER_NORM))
-    print()
 
     best_validation_loss = float("inf")
     best_state = None
 
-    for epoch in range(EPOCHS):
+    for epoch in range(epochs):
         model.train()
 
         total_loss = 0.0
-        total_examples = 0
+        total_tokens = 0
 
-        for inputs, targets, lengths in train_loader:
+        for inputs, targets in train_loader:
             optimizer.zero_grad()
 
-            logits = model(inputs, lengths)
-            loss = criterion(logits, targets)
+            logits = model(inputs)
+            batch_size, sequence_length, vocab_size = logits.shape
+
+            loss = criterion(
+                logits.reshape(-1, vocab_size),
+                targets.reshape(-1),
+            )
 
             loss.backward()
             optimizer.step()
 
-            batch_size = inputs.size(0)
-            total_loss += loss.item() * batch_size
-            total_examples += batch_size
+            num_tokens = targets.numel()
+            total_loss += loss.item() * num_tokens
+            total_tokens += num_tokens
 
-        train_loss = total_loss / max(total_examples, 1)
+        train_loss = total_loss / max(total_tokens, 1)
 
         validation_loss, validation_accuracy = evaluate(
             model,
@@ -346,14 +336,13 @@ def next_token_demo(ctx):
             "| Validation loss: {:.4f} | Validation accuracy: {:.1%}"
             .format(
                 epoch + 1,
-                EPOCHS,
+                epochs,
                 train_loss,
                 validation_loss,
                 validation_accuracy,
             )
         )
 
-        # Keep the model with the lowest validation loss.
         if validation_loss < best_validation_loss:
             best_validation_loss = validation_loss
             best_state = {
@@ -363,6 +352,43 @@ def next_token_demo(ctx):
 
     if best_state is not None:
         model.load_state_dict(best_state)
+
+    return model, best_validation_loss
+
+
+@showcase.experiment
+def next_token_demo(ctx):
+    model = ctx["model"]
+    train_loader = ctx["train_loader"]
+    validation_loader = ctx["validation_loader"]
+    test_loader = ctx["test_loader"]
+
+    criterion = nn.CrossEntropyLoss()
+
+    header("PYTORCH RNN: NEXT-TOKEN PREDICTION")
+
+    print("Task: predict the next token in a text sequence.")
+    print("Corpus: {}".format(CORPUS_PATH.name))
+    print("Corpus format: {}".format(CORPUS_FORMAT))
+    print("Vocabulary size: {}".format(len(ctx["vocabulary"])))
+    print("Training batches: {}".format(len(train_loader)))
+    print("Validation batches: {}".format(len(validation_loader)))
+    print("Test batches: {}".format(len(test_loader)))
+    print("Batch size: {}".format(BATCH_SIZE))
+    print("Dropout: {}".format(DROPOUT))
+    print("LayerNorm: {}".format(USE_LAYER_NORM))
+    print()
+
+    model, best_validation_loss = train(
+        model=model,
+        train_loader=train_loader,
+        validation_loader=validation_loader,
+        epochs=EPOCHS,
+        lr=LEARNING_RATE,
+        weight_decay=WEIGHT_DECAY,
+    )
+
+    ctx["model"] = model
 
     test_loss, test_accuracy = evaluate(
         model,
@@ -414,22 +440,16 @@ def generate_text(ctx, start_text, num_tokens):
                 dtype=torch.long,
             )
 
-            lengths = torch.tensor(
-                [len(context_ids)],
-                dtype=torch.long,
-            )
-
-            logits = model(inputs, lengths)[0].clone()
+            # Predict the token following the final context token.
+            logits = model(inputs)[0, -1].clone()
 
             # Padding is a batching utility, not a text token.
             logits[pad_id] = float("-inf")
 
             if GENERATION_STRATEGY == "greedy":
-                # Always choose the token with the highest score.
                 next_id = int(logits.argmax().item())
 
             elif GENERATION_STRATEGY == "sample":
-                # Randomly sample according to predicted probabilities.
                 probabilities = torch.softmax(logits, dim=0)
                 next_id = int(
                     torch.multinomial(probabilities, 1).item()

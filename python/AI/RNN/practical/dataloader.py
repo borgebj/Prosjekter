@@ -1,49 +1,72 @@
 import torch
-from torch.utils.data import Dataset, DataLoader
-from torch.nn.utils.rnn import pad_sequence
+from torch.utils.data import IterableDataset, DataLoader
 
 
-class NextTokenDataset(Dataset):
-    def __init__(self, encoded_stories, max_context=16):
-        self.examples = []
+class NextTokenDataset(IterableDataset):
+    def __init__(
+        self,
+        encoded_stories,
+        context_length=16,
+        samples_per_epoch=None,
+    ):
+        self.encoded_stories = [
+            torch.tensor(ids, dtype=torch.long)
+            for ids in encoded_stories
+            if len(ids) > context_length
+        ]
+        self.context_length = context_length
+        self.samples_per_epoch = samples_per_epoch
 
-        for ids in encoded_stories:
-            for i in range(1, len(ids)):
-                start = max(0, i - max_context)
-                input_ids = ids[start:i]
-                target_id = ids[i]
+        if not self.encoded_stories:
+            raise ValueError(
+                "No stories are longer than context_length."
+            )
 
-                self.examples.append((input_ids, target_id))
+    def __iter__(self):
+        count = self.samples_per_epoch
+
+        if count is None:
+            count = sum(
+                len(story) - self.context_length
+                for story in self.encoded_stories
+            )
+
+        for _ in range(count):
+
+            # Select a random story.
+            story_index = torch.randint(
+                len(self.encoded_stories), (1,)
+            ).item()
+
+            tokens = self.encoded_stories[story_index]
+
+            # Select a random starting position.
+            start = torch.randint(
+                len(tokens) - self.context_length,
+                (1,),
+            ).item()
+
+            # creates examples:
+            # 2 batch size, 4 context length
+            # x = [ [2, 3, 4, 5],
+            #       [7, 8, 9, 10] ]
+            #
+            # y = [ [3, 4, 5, 6],
+            #       [8, 9, 10, 1] ]
+
+            x = tokens[start:start + self.context_length]
+            y = tokens[start + 1:start + self.context_length + 1]
+
+            yield x, y
 
     def __len__(self):
-        return len(self.examples)
+        if self.samples_per_epoch is not None:
+            return self.samples_per_epoch
 
-    def __getitem__(self, index):
-        input_ids, target_id = self.examples[index]
-
-        return (
-            torch.tensor(input_ids, dtype=torch.long),
-            torch.tensor(target_id, dtype=torch.long),
+        return sum(
+            len(story) - self.context_length
+            for story in self.encoded_stories
         )
-
-
-def collate_batch(batch, pad_id):
-    sequences, targets = zip(*batch)
-
-    lengths = torch.tensor(
-        [len(sequence) for sequence in sequences],
-        dtype=torch.long,
-    )
-
-    padded_sequences = pad_sequence(
-        sequences,
-        batch_first=True,
-        padding_value=pad_id,
-    )
-
-    targets = torch.stack(targets)
-
-    return padded_sequences, targets, lengths
 
 
 def create_dataloader(
@@ -52,18 +75,15 @@ def create_dataloader(
     max_context=16,
     pad_id=0,
     shuffle=True,
+    samples_per_epoch=None,
 ):
     dataset = NextTokenDataset(
-        encoded_stories,
-        max_context=max_context,
+        encoded_stories=encoded_stories,
+        context_length=max_context,
+        samples_per_epoch=samples_per_epoch,
     )
-
-    def collate_fn(batch):
-        return collate_batch(batch, pad_id)
 
     return DataLoader(
         dataset,
         batch_size=batch_size,
-        shuffle=shuffle,
-        collate_fn=collate_fn,
     )
